@@ -1,0 +1,6 @@
+
+--  Export histogram of life-times
+
+--  plot lumenescance intensity for mono-, di-, tri-mers
+
+--  get diffusion constant 
