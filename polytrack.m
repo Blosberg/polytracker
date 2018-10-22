@@ -1,4 +1,4 @@
-% Eventually turn this into a function 
+% Eventually turn this into a function
 % function [velocity_batch] = analyze_track(tracks_input_RAW, dt )
 
 %===== remove this when we make this a funciton =====
@@ -16,74 +16,74 @@ tracks_input = tracksFinal
 % something like:
 % is_ephemeral = length( tracks_input.tracksCoordAmpCG ) > 8
 % @@@ try to remove the T
- 
+
 Num_indep_tracks_RAW = length(tracks_input_RAW);
 
 for ti = 1:Num_indep_tracks_RAW
-   
+  
     T_RAW(ti) = tracks_input_RAW(ti).seqOfEvents(Nevents,1) -  tracks_input_RAW(ti).seqOfEvents(1,1) + 1;
 
-    if ( T_RAW(ti) <= 1 )       
-        is_ephemeral(ti) = true; 
-        % if the track only contains a single frame, then we are not interested in it. 
+    if ( T_RAW(ti) <= 1 )      
+        is_ephemeral(ti) = true;
+        % if the track only contains a single frame, then we are not interested in it.
     else
         is_ephemeral(ti) = false;
-       
+      
     end
 end
 
 tracks_input =  tracks_input_RAW( ~is_ephemeral );
 
-% FROM HERE ON WE ONLY WORK WITH THE non-ephemeral input data 
+% FROM HERE ON WE ONLY WORK WITH THE non-ephemeral input data
 
 Num_indep_tracks = length( tracks_input);
 T                = T_RAW( ~is_ephemeral ); % -- Number of Frames
 
 % ===================================================
-% --- get xy- and dxdy- data for each subtrack 
+% --- get xy- and dxdy- data for each subtrack
 
 for ti = 1:Num_indep_tracks
 
-    Nsubtracks(ti) =  size( tracks_input(ti).tracksCoordAmpCG, 1);    
+    Nsubtracks(ti) =  size( tracks_input(ti).tracksCoordAmpCG, 1);   
     Nevents        =  size( tracks_input(ti).seqOfEvents, 1 );
-    % Loop through each independent track (of length T frames) and figure 
+    % Loop through each independent track (of length T frames) and figure
     % out how many sub-tracks need to be considered for each case:
     for sti = 1:Nsubtracks(ti)
        % Within each sub-track, extract the position and change values
        % the dxdy array will be of size T(ti)-1 and have values NA for any
        % segment in which the particle could not be located on either side
        % of the window
-      
      
+    
        trackdat(ti).subtrack(sti).xypos(1,:) = tracks_input(ti).tracksCoordAmpCG(sti,1:8:end);
        trackdat(ti).subtrack(sti).xypos(2,:) = tracks_input(ti).tracksCoordAmpCG(sti,2:8:end);
-       
+      
        trackdat(ti).subtrack(sti).dxdy(1,:)  = diff ( trackdat(ti).subtrack(sti).xypos(1,:) );
        trackdat(ti).subtrack(sti).dxdy(2,:)  = diff ( trackdat(ti).subtrack(sti).xypos(2,:) );
     end
 
 end
- 
+
 % ===================================================
 % --- Assign polymer state for each time point along each track:
 % NaN = non-existence, 1 = monomer, 2 = dimer, 3 = trimer,  etc...
 
 for ti = 1: length(trackdat) % go through all non-ephemeral independent track sets.
-    
+   
     state{ti} = ones( Nsubtracks(ti), ( T(ti) )   );
     %initialize "state" by assuming monomer status
-    
+   
     for evi = 1:size( tracks_input(ti).seqOfEvents, 1) % loop through the events that occured throughout this track
-        
+       
         if ( tracks_input(ti).seqOfEvents(evi,2) == 1)% ------- BIRTH:
-            
+           
             % ---- delayed onset?
             if ( tracks_input(ti).seqOfEvents(evi,1) > 1  )
                 % subtrack does not begin at frame 1; set state for all previous time-points to NaN
                 state{ti}( tracks_input(ti).seqOfEvents(evi,3), 1:((tracks_input(ti).seqOfEvents(evi,1))-1)) = NaN ;
                 %                    ^ col. 3 refers to  the subtrack that just got born.
             end
-            
+           
             % ---- born through Split ?
             if ( ~isnan( tracks_input(ti).seqOfEvents(evi,4) )  )
                 % if so, then decrement state of the other track affected by this
@@ -95,10 +95,10 @@ for ti = 1: length(trackdat) % go through all non-ephemeral independent track se
                 %                    |other subtrack affected by this event |    | From this event to end time      |              | decrement state |
             end
         end
-        
+       
         if ( tracks_input(ti).seqOfEvents(evi,2) == 2 )% ------- DEATH:
             % evi describes a Track that has just "died":
-            
+           
             % ---- non-terminal case?
             if ( tracks_input(ti).seqOfEvents(evi,1) < T(ti)  )
                 % subtrack does not end at the very last frame; set all subsequent
@@ -106,7 +106,7 @@ for ti = 1: length(trackdat) % go through all non-ephemeral independent track se
                 state{ti}( tracks_input(ti).seqOfEvents(evi,3) , (tracks_input(ti).seqOfEvents(evi,1)):T(ti) ) = NaN ;
                 %                    ^ col. 3 refers to  the subtrack that just died.
             end
-            
+           
             % ---- death through merger ?
             if ( ~isnan( tracks_input(ti).seqOfEvents(evi,4) )  )
                 % if so, then increment state of the other track affected by this
@@ -116,20 +116,20 @@ for ti = 1: length(trackdat) % go through all non-ephemeral independent track se
                 %                    |                                  |   |                                          |   |                 |
                 %                    |^row number == index of other     |   | "now" == Frame (from 1rst col.)^         |   |                 |
                 %                    | subtrack affected by this event  |   |             from now to end of run   ^   |   | increment state |
-                
+               
             end % --- finished "if" checking for merger
-            
+           
         end % --- finished "if" checking for death
-        
+       
     end % --- finished "for loop" over evi
-   
- 
-    %---- set states relative to baseline (minimal == 1)  
+  
+
+    %---- set states relative to baseline (minimal == 1) 
     for sti = 1:Nsubtracks(ti) % within each subtrack set minimal finite state to 1, and all others relative to that.
         offset = 1 - min( state{ti}(sti,:) );
-        state{ti}(sti,:) = state{ti}(sti,:) + offset; % ==    
+        state{ti}(sti,:) = state{ti}(sti,:) + offset; % ==   
     end
-    
+   
 end % --- finished for-loop over ti through all non-ephemeral independent track sets.
 
 
@@ -139,12 +139,12 @@ end % --- finished for-loop over ti through all non-ephemeral independent track 
 
 % ===================================================
 for S = 1:MS
-   
-   Polydat{S}= []
   
+   Polydat{S}= []
+ 
 
    for ti = 1:Num_indep_tracks
-            
+           
       mask       = get_state_mask( state_matrix{ti}, S, 0 )
       maskA      = resize( mask, 1, ... ) @@@
 
@@ -156,14 +156,14 @@ for S = 1:MS
 
       Lumen_temp = resize( mask.*Lumen{ti} ) @@@ grab lumen data above
       Polydat{S}.Lumen = [ Polydat{S}.Lumen, Lumen_temp[ maskA != 0 ] ]
-     
+    
       dx_temp       = resize( mask.*dx{ti} ) @@@ grab dx data above
       Polydat{S}.dx = [ Polydat{S}.Lumen, Lumen_temp[ maskA != 0 ] ]
 
       dy_temp       = resize( mask.*dy{ti} ) @@@ grab dy data above
       Polydat{S}.dy = [ Polydat{S}.Lumen, Lumen_temp[ maskA != 0 ] ]
 
-      Polydat{S}.lifetimes = get_state_lifetimes ( state_matrix{ti}, tracks_input(ti).SeqofEvents  ) 
+      Polydat{S}.lifetimes = get_state_lifetimes ( state_matrix{ti}, tracks_input(ti).SeqofEvents  )
 
    end
 
@@ -174,21 +174,28 @@ end
 % get diffusion constants:
 
 for S = 1:MS
-   
+  
    Polydat{S}.diff_const = get_diff_const( Polydat{S}.dx, Polydat{S}.dy,  )
 
-end 
+end
 
+% for the diffusion constant, consider these functions:
+%  http://tinevez.github.io/msdanalyzer/
+% 
+%  https://de.mathworks.com/matlabcentral/fileexchange/34040-simple-tracker
+% 
 
 
 % ===================================================
 % Take histograms of all the above variable:
 
-figure(1);
+% figure(1);
 % plot Lumen data for mono, di, tri-mer
 
+% figure(2);
 % plot dx,dy data for diffusion const
 
+% figure(3);
 % plot histograms of lifetimes for each type of polymer
 % histogram(X,nbins)
 
@@ -202,7 +209,7 @@ figure(1);
 % Lumen_dat{1} is the list of light intensity observations for polymers in the 1 state
 % Lumen_dat{2} "" "" in the 2 state, etc.
 % e.g. nameArray = [nameArray, 'Name you want to append'];
-% or c = cat(1,a,b) 
+% or c = cat(1,a,b)
 
 
 % ===================================================
@@ -231,4 +238,5 @@ figure(1);
 %                                   number - start is due to a split, end
 %                                   is due to a merge, number is the index
 %                                   of track segment for the merge/split.
+
 
