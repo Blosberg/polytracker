@@ -163,18 +163,34 @@ for S = 1:MS
       dy_temp       = resize( mask.*dy{ti} ) @@@ grab dy data above
       Polydat{S}.dy = [ Polydat{S}.Lumen, Lumen_temp[ maskA != 0 ] ]
 
+      Polydat{S}.lifetimes = get_state_lifetimes ( state_matrix{ti}, tracks_input(ti).SeqofEvents  ) 
 
    end
 
 
 end
 
+% ===================================================
+% get diffusion constants:
+
+for S = 1:MS
+   
+   Polydat{S}.diff_const = get_diff_const( Polydat{S}.dx, Polydat{S}.dy,  )
+
+end 
+
+
 
 % ===================================================
 % Take histograms of all the above variable:
 
+figure(1);
+% plot Lumen data for mono, di, tri-mer
 
+% plot dx,dy data for diffusion const
 
+% plot histograms of lifetimes for each type of polymer
+% histogram(X,nbins)
 
 % ===================================================
 % --- build masks
