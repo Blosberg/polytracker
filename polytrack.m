@@ -1,3 +1,4 @@
+% last edited from Boontower 17:06, 25.10.18
 % Eventually turn this into a function
 % function [velocity_batch] = analyze_track(tracks_input_RAW, dt )
 
@@ -6,7 +7,7 @@ dat_in = "E:\NikonTIRF\04-10-18\beta1\141\TrackingPackage\tracks\Channel_1_track
 tracksoftware = "C:\u-track\software\plotCompTrack.m"
 dt     = 0.04
 load(dat_in)
-tracks_input = tracksFinal
+tracks_input_RAW = tracksFinal; 
 
 % ===================================================
 % --- FILTER OUT EPHEMERAL TRACKS:
@@ -21,7 +22,8 @@ Num_indep_tracks_RAW = length(tracks_input_RAW);
 
 for ti = 1:Num_indep_tracks_RAW
   
-    T_RAW(ti) = tracks_input_RAW(ti).seqOfEvents(Nevents,1) -  tracks_input_RAW(ti).seqOfEvents(1,1) + 1;
+    Nevents_RAW(ti) = size( tracks_input_RAW(ti).seqOfEvents, 1 );
+    T_RAW(ti)       = tracks_input_RAW(ti).seqOfEvents(Nevents_RAW(ti),1) -  tracks_input_RAW(ti).seqOfEvents(1,1) + 1;
 
     if ( T_RAW(ti) <= 1 )      
         is_ephemeral(ti) = true;
@@ -32,12 +34,14 @@ for ti = 1:Num_indep_tracks_RAW
     end
 end
 
-tracks_input =  tracks_input_RAW( ~is_ephemeral );
+% FROM HERE ON WE ONLY WORK WITH THE non-ephemeral input data  
 
-% FROM HERE ON WE ONLY WORK WITH THE non-ephemeral input data
-
+tracks_input     =  tracks_input_RAW( ~is_ephemeral );
 Num_indep_tracks = length( tracks_input);
-T                = T_RAW( ~is_ephemeral ); % -- Number of Frames
+T                = T_RAW( ~is_ephemeral );      % -- Number of Frames for that compound track
+Nevents          = Nevents_RAW( ~is_ephemeral ); % -- Number of events in that compound track
+
+% (nothing with _RAW should be touched after this point )
 
 % ===================================================
 % --- get xy- and dxdy- data for each subtrack
@@ -45,7 +49,7 @@ T                = T_RAW( ~is_ephemeral ); % -- Number of Frames
 for ti = 1:Num_indep_tracks
 
     Nsubtracks(ti) =  size( tracks_input(ti).tracksCoordAmpCG, 1);   
-    Nevents        =  size( tracks_input(ti).seqOfEvents, 1 );
+
     % Loop through each independent track (of length T frames) and figure
     % out how many sub-tracks need to be considered for each case:
     for sti = 1:Nsubtracks(ti)
@@ -68,6 +72,7 @@ end
 % --- Assign polymer state for each time point along each track:
 % NaN = non-existence, 1 = monomer, 2 = dimer, 3 = trimer,  etc...
 
+max_state = 1
 for ti = 1: length(trackdat) % go through all non-ephemeral independent track sets.
    
     state{ti} = ones( Nsubtracks(ti), ( T(ti) )   );
@@ -130,22 +135,23 @@ for ti = 1: length(trackdat) % go through all non-ephemeral independent track se
         state{ti}(sti,:) = state{ti}(sti,:) + offset; % ==   
     end
    
+    temp = max( max( state{ti} ) );
+    if (temp > max_state)
+       max_state = temp;
+    end
+
 end % --- finished for-loop over ti through all non-ephemeral independent track sets.
 
+%% 
+% ===================================================
+% get list of arrays of lifetimes observed for each polymer state  --> MS
+lifetime_list = get_state_lifetimes ( state_matrix{ti}, tracks_input, max_state )
 
 % ===================================================
-% get max state --> MS
 
-
-% ===================================================
-for S = 1:MS
-  
-   Polydat{S}= []
- 
-
-   for ti = 1:Num_indep_tracks
-           
-      mask       = get_state_mask( state_matrix{ti}, S, 0 )
+for ti = 1:Num_indep_tracks
+     
+      mask       = create_mask( state_matrix{ti}, S, 0 )
       maskA      = resize( mask, 1, ... ) @@@
 
 % simple way to convert matrix to array:
@@ -163,12 +169,8 @@ for S = 1:MS
       dy_temp       = resize( mask.*dy{ti} ) @@@ grab dy data above
       Polydat{S}.dy = [ Polydat{S}.Lumen, Lumen_temp[ maskA != 0 ] ]
 
-      Polydat{S}.lifetimes = get_state_lifetimes ( state_matrix{ti}, tracks_input(ti).SeqofEvents  )
-
-   end
-
-
 end
+
 
 % ===================================================
 % get diffusion constants:

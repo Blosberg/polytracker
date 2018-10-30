@@ -1,4 +1,4 @@
-function [ mask_out ] = get_state_mask( state_matrix, desired_state, boolderiv )
+function [ mask_out ] = create_mask( state_matrix, desired_state, boolderiv )
 % takes a matrix of states (state_matrix) and outputs a mask of 1's and 0's
 % the ones indicate frames where the state_matrix == desired_state 
 % if deriv ==0, then mask_out has the same size as state_matrix
