@@ -3,12 +3,15 @@
 % function [velocity_batch] = analyze_track(tracks_input_RAW, dt )
 
 %===== remove this when we make this a funciton =====
-dat_in = "E:\NikonTIRF\04-10-18\beta1\141\TrackingPackage\tracks\Channel_1_tracking_result"
-tracksoftware = "C:\u-track\software\plotCompTrack.m"
-dt     = 0.04
-load(dat_in)
-tracks_input_RAW = tracksFinal; 
+% dat_in = "E:\NikonTIRF\04-10-18\beta1\141\TrackingPackage\tracks\Channel_1_tracking_result"
+% tracksoftware = "C:\u-track\software\plotCompTrack.m"
+% load(dat_in)
+% clear *
 
+load("workspace_just_tracksFinal.m")
+
+tracks_input_RAW = tracksFinal; 
+dt     = 0.04
 % ===================================================
 % --- FILTER OUT EPHEMERAL TRACKS:
 % select only the tracks that have length greater than 1 frame.
@@ -19,12 +22,23 @@ tracks_input_RAW = tracksFinal;
 % @@@ try to remove the T
 
 Num_indep_tracks_RAW = length(tracks_input_RAW);
+Nframes = 1
 
 for ti = 1:Num_indep_tracks_RAW
-  
+    
+    # Nframes should be set to the largest value of frame# observed among all tracks
+    if ( tracksFinal(ti).seqOfEvents(end,1) > Nframes )
+      Nframes = tracksFinal(ti).seqOfEvents(end,1);
+    end
+    
     Nevents_RAW(ti) = size( tracks_input_RAW(ti).seqOfEvents, 1 );
     T_RAW(ti)       = tracks_input_RAW(ti).seqOfEvents(Nevents_RAW(ti),1) -  tracks_input_RAW(ti).seqOfEvents(1,1) + 1;
 
+    if( size(tracks_input_RAW(ti).tracksCoordAmpCG, 2)/8 ~= (tracksFinal(ti).seqOfEvents(end,1)- tracksFinal(ti).seqOfEvents(1,1) +1 ) )
+       disp("inconsistent sizing in Tracks --unclear")
+       return
+    end
+    
     if ( T_RAW(ti) <= 1 )      
         is_ephemeral(ti) = true;
         % if the track only contains a single frame, then we are not interested in it.
@@ -37,9 +51,10 @@ end
 % FROM HERE ON WE ONLY WORK WITH THE non-ephemeral input data  
 
 tracks_input     =  tracks_input_RAW( ~is_ephemeral );
+T                =  T_RAW( ~is_ephemeral );      % -- Number of Frames for that compound track
+Nevents          =  Nevents_RAW( ~is_ephemeral ); % -- Number of events in that compound track
+
 Num_indep_tracks = length( tracks_input);
-T                = T_RAW( ~is_ephemeral );      % -- Number of Frames for that compound track
-Nevents          = Nevents_RAW( ~is_ephemeral ); % -- Number of events in that compound track
 
 % (nothing with _RAW should be touched after this point )
 
@@ -52,18 +67,17 @@ for ti = 1:Num_indep_tracks
 
     % Loop through each independent track (of length T frames) and figure
     % out how many sub-tracks need to be considered for each case:
-    for sti = 1:Nsubtracks(ti)
+    for sti = 1:Nsubtracks( ti )
        % Within each sub-track, extract the position and change values
        % the dxdy array will be of size T(ti)-1 and have values NA for any
        % segment in which the particle could not be located on either side
-       % of the window
-     
+       % of the window   
     
-       trackdat(ti).subtrack(sti).xypos(1,:) = tracks_input(ti).tracksCoordAmpCG(sti,1:8:end);
-       trackdat(ti).subtrack(sti).xypos(2,:) = tracks_input(ti).tracksCoordAmpCG(sti,2:8:end);
+       trackdat_xy(ti).subtrack(sti).xypos(1,:) = tracks_input(ti).tracksCoordAmpCG(sti,1:8:end);
+       trackdat_xy(ti).subtrack(sti).xypos(2,:) = tracks_input(ti).tracksCoordAmpCG(sti,2:8:end);
       
-       trackdat(ti).subtrack(sti).dxdy(1,:)  = diff ( trackdat(ti).subtrack(sti).xypos(1,:) );
-       trackdat(ti).subtrack(sti).dxdy(2,:)  = diff ( trackdat(ti).subtrack(sti).xypos(2,:) );
+       trackdat_xy(ti).subtrack(sti).dxdy(1,:)  = diff ( trackdat_xy(ti).subtrack(sti).xypos(1,:) );
+       trackdat_xy(ti).subtrack(sti).dxdy(2,:)  = diff ( trackdat_xy(ti).subtrack(sti).xypos(2,:) );
     end
 
 end
@@ -73,28 +87,28 @@ end
 % NaN = non-existence, 1 = monomer, 2 = dimer, 3 = trimer,  etc...
 
 max_state = 1
-for ti = 1: length(trackdat) % go through all non-ephemeral independent track sets.
+for ti = 1:Num_indep_tracks % go through all non-ephemeral independent track sets.
    
-    state{ti} = ones( Nsubtracks(ti), ( T(ti) )   );
-    %initialize "state" by assuming monomer status
+    state{ti} = ones( Nsubtracks(ti), Nframes );
+    %initialize "state" by assuming monomer status throughout entire movie.
    
     for evi = 1:size( tracks_input(ti).seqOfEvents, 1) % loop through the events that occured throughout this track
        
         if ( tracks_input(ti).seqOfEvents(evi,2) == 1)% ------- BIRTH:
            
-            % ---- delayed onset?
+            % ---- set states for _THIS_ subtrack. Is it delayed from 1 ?
             if ( tracks_input(ti).seqOfEvents(evi,1) > 1  )
                 % subtrack does not begin at frame 1; set state for all previous time-points to NaN
                 state{ti}( tracks_input(ti).seqOfEvents(evi,3), 1:((tracks_input(ti).seqOfEvents(evi,1))-1)) = NaN ;
                 %                    ^ col. 3 refers to  the subtrack that just got born.
             end
            
-            % ---- born through Split ?
+            % ---- If born through split, update state of corresponding track
             if ( ~isnan( tracks_input(ti).seqOfEvents(evi,4) )  )
                 % if so, then decrement state of the other track affected by this
                 % point on to the end of the full track.
-                temp_dec = state{ti}( tracks_input(ti).seqOfEvents(evi,4 ), tracks_input(ti).seqOfEvents(evi,1) : T(ti));
-                           state{ti}( tracks_input(ti).seqOfEvents(evi,4 ), tracks_input(ti).seqOfEvents(evi,1) : T(ti) ) = temp_dec - 1;
+                temp_dec = state{ti}( tracks_input(ti).seqOfEvents(evi,4 ), tracks_input(ti).seqOfEvents(evi,1) : Nframes );
+                           state{ti}( tracks_input(ti).seqOfEvents(evi,4 ), tracks_input(ti).seqOfEvents(evi,1) : Nframes ) = temp_dec - 1;
                 %                    |                                      |    |                                  |              |             |
                 %                    |^row number corresponding to index of |    | ^ Frame  # provided by 1rst col. |              |             |
                 %                    |other subtrack affected by this event |    | From this event to end time      |              | decrement state |
@@ -105,22 +119,22 @@ for ti = 1: length(trackdat) % go through all non-ephemeral independent track se
             % evi describes a Track that has just "died":
            
             % ---- non-terminal case?
-            if ( tracks_input(ti).seqOfEvents(evi,1) < T(ti)  )
-                % subtrack does not end at the very last frame; set all subsequent
-                % states to NaN
-                state{ti}( tracks_input(ti).seqOfEvents(evi,3) , (tracks_input(ti).seqOfEvents(evi,1)):T(ti) ) = NaN ;
-                %                    ^ col. 3 refers to  the subtrack that just died.
+            if ( tracks_input(ti).seqOfEvents(evi,1) < Nframes  )
+                % subtrack does not end at the very last frame; set all states
+                % from this point to the end as NaN
+                state{ti}( tracks_input(ti).seqOfEvents(evi,3) , (tracks_input(ti).seqOfEvents(evi,1)): Nframes ) = NaN ;
+                %                                           ^ col. 3 =subtrack that just died.
             end
            
             % ---- death through merger ?
             if ( ~isnan( tracks_input(ti).seqOfEvents(evi,4) )  )
                 % if so, then increment state of the other track affected by this
                 % point on to the end of the full track.
-                temp_inc = state{ti}( tracks_input(ti).seqOfEvents(evi,4 ), tracks_input(ti).seqOfEvents(evi,1) : T(ti) );
-                           state{ti}( tracks_input(ti).seqOfEvents(evi,4 ), tracks_input(ti).seqOfEvents(evi,1) : T(ti) ) = temp_inc + 1 ;
-                %                    |                                  |   |                                          |   |                 |
-                %                    |^row number == index of other     |   | "now" == Frame (from 1rst col.)^         |   |                 |
-                %                    | subtrack affected by this event  |   |             from now to end of run   ^   |   | increment state |
+                temp_inc = state{ti}( tracks_input(ti).seqOfEvents(evi,4 ), tracks_input(ti).seqOfEvents(evi,1) : Nframes );
+                           state{ti}( tracks_input(ti).seqOfEvents(evi,4 ), tracks_input(ti).seqOfEvents(evi,1) : Nframes ) = temp_inc + 1 ;
+                %                    |                                  |   |                                            |    |                 |
+                %                    |^row number == index of other     |   | "now" == Frame (from 1rst col.)^           |    |                 |
+                %                    | subtrack affected by this event  |   |             from now to end of run   ^     |    | increment state |
                
             end % --- finished "if" checking for merger
            
@@ -145,7 +159,7 @@ end % --- finished for-loop over ti through all non-ephemeral independent track 
 %% 
 % ===================================================
 % get list of arrays of lifetimes observed for each polymer state  --> MS
-lifetime_list = get_state_lifetimes ( state_matrix{ti}, tracks_input, max_state )
+lifetime_list = get_state_lifetimes ( state, tracks_input, max_state, Nframes );
 
 % ===================================================
 
