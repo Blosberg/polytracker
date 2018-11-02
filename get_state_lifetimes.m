@@ -21,12 +21,12 @@ for ti = 1: Num_comp_tracks
      state_birth = min( find(~isnan(state_matrix_allti{ti}(sti,:) )) );
      state_death = max( find(~isnan(state_matrix_allti{ti}(sti,:) )) );
      
-     # it dies on the first NaN value, unless that's the end of the whole video.
+     % it dies on the first NaN value, unless that's the end of the whole video.
      if (state_death < Nframes)
         state_death = state_death +1 ;
      end
 
-     # events that list the birth and death of this subtrack
+     % events that list the birth and death of this subtrack
      event_obit = tracks_input(ti).seqOfEvents( tracks_input(ti).seqOfEvents(:,3) == sti  ,: );
      if( size( event_obit,1) ~= 2 )
          disp("not getting birth-death pair")
