@@ -43,22 +43,23 @@ for ti = 1:Num_indep_tracks % go through all non-ephemeral independent track set
             if ( tracks_input(ti).seqOfEvents(evi,1) < Nframes  )
                 % subtrack does not end at the very last frame; set all states
                 % from this point to the end as NaN
-                state{ti}( tracks_input(ti).seqOfEvents(evi,3) , (tracks_input(ti).seqOfEvents(evi,1)): Nframes ) = NaN ;
+                state{ti}( tracks_input(ti).seqOfEvents(evi,3) , ((tracks_input(ti).seqOfEvents(evi,1))+1): Nframes ) = NaN ;
                 %                                           ^ col. 3 =subtrack that just died.
-            end
-           
-            % ---- death through merger ?
-            if ( ~isnan( tracks_input(ti).seqOfEvents(evi,4) )  )
-                % if so, then increment state of the other track affected by this
-                % point on to the end of the full track.
-                temp_inc = state{ti}( tracks_input(ti).seqOfEvents(evi,4 ), tracks_input(ti).seqOfEvents(evi,1) : Nframes );
-                           state{ti}( tracks_input(ti).seqOfEvents(evi,4 ), tracks_input(ti).seqOfEvents(evi,1) : Nframes ) = temp_inc + 1 ;
-                %                    |                                  |   |                                            |    |                 |
-                %                    |^row number == index of other     |   | "now" == Frame (from 1rst col.)^           |    |                 |
-                %                    | subtrack affected by this event  |   |             from now to end of run   ^     |    | increment state |
+                       
+             end % finished "if" this event was non-terminal (determines 
+          
+                          % ---- death through merger ?
+             if ( ~isnan( tracks_input(ti).seqOfEvents(evi,4) )  )
+                   % if so, then increment state of the other track affected by this
+                   % point on to the end of the full track.
+                   temp_inc = state{ti}( tracks_input(ti).seqOfEvents(evi,4 ), (tracks_input(ti).seqOfEvents(evi,1) ): Nframes );
+                              state{ti}( tracks_input(ti).seqOfEvents(evi,4 ), (tracks_input(ti).seqOfEvents(evi,1) ): Nframes ) = temp_inc + 1 ;
+                   %                    |                                  |   |                                            |    |                 |
+                   %                    |^row number == index of other     |   | "now" == Frame (from 1rst col.)^           |    |                 |
+                   %                    | subtrack affected by this event  |   |             from now to end of run   ^     |    | increment state |
                
-            end % --- finished "if" checking for merger
-           
+             end % --- finished "if" checking for merger
+          
         end % --- finished "if" checking for death
             
        
@@ -70,19 +71,12 @@ for ti = 1:Num_indep_tracks % go through all non-ephemeral independent track set
         offset = 1 - min( state{ti}(sti,:) );
         state{ti}(sti,:) = state{ti}(sti,:) + offset; % ==   
         
-        state{ti}(sti,  isnan(trackmat_xyl(ti).Lamp(sti,:)) ) = NaN 
+        state{ti}(sti,  isnan(trackmat_xyl(ti).Lamp(sti,:)) ) = NaN ;
     end
    
-    temp = max( max( state{ti} ) );
-    if (temp > max_state)
-       max_state = temp;
-    end
-
-
-    
+    % max_state => largest state seen so far
+    max_state = max( [ max( state{ti} ), max_state  ]);
+   
 end % --- finished for-loop over ti through all non-ephemeral independent track sets.
-
-
-
 
 end

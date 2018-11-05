@@ -1,4 +1,5 @@
-function [ state, excit_duration ] =  get_state ( state_vector_ti_sti, Event_i, Event_f )
+function [ state_output, window_duration ] =  get_state ( state_vector_ti_sti, Event_i, Event_f )
+% having identified a process of interest, obtain the state at the time, and the duration.
 
 % ---- sanity checks:
 if( size( Event_i, 2 ) ~= 4 || size( Event_f, 2 ) ~= 4 )
@@ -11,9 +12,10 @@ if( Event_f(1) - Event_i(1) <=0)
   return
 end
 
-S=unique( state_vector_ti_sti( Event_i(1):Event_f(1)-1 ) );
+temp_state_vector = state_vector_ti_sti( Event_i(1):Event_f(1)-1 );
+S=unique( temp_state_vector( ~isnan(temp_state_vector) ) );
 
-if( size(S,1) ~= 1 )
+if( size(S,2) ~= 1 )
    disp("ERROR: non-uniform states during excitation window")
    return
 end
@@ -23,7 +25,8 @@ if( state_vector_ti_sti( Event_i(1) ) -  state_vector_ti_sti( Event_i(1)-1 ) <=0
    return
 end
 
-state          = S;
-excit_duration = Event_f(1) - Event_i(1);
+state_output          = S;
+% @@@ TODO: double-check +1 convention here:
+window_duration = Event_f(1) - Event_i(1);
 
 end

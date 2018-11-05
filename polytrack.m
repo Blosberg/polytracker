@@ -6,6 +6,8 @@
 % tracksoftware = "C:\u-track\software\plotCompTrack.m"
 % load(dat_in)
 % clear *
+
+
 load("workspace_just_tracksFinal.m")
 tracks_input_RAW = tracksFinal; 
 dt     = 0.04
@@ -25,19 +27,51 @@ trackdat_xyl =  build_xyl_trackmat ( tracks_input, Nframes );
 % NaN = non-existence, 1 = monomer, 2 = dimer, 3 = trimer,  etc...
 
 [ state, max_state ] =  build_state_matrix ( tracks_input, trackdat_xyl,  Nframes );
-%% 
+ 
 % ===================================================
 % get list of arrays of lifetimes observed for each polymer state  --> MS
 % Lifetime_list{1} is the list of lifetime observations for polymers in the 1 state
 % Lifetime_list{2} "" "" in the 2 state, etc.
 
 lifetime_list = get_state_lifetimes ( tracks_input, state, max_state, Nframes );
+all_lives_matter = []
+
+for s = 2:max_state
+   mean_lifetime = mean( lifetime_list{s}) ;
+   all_lives_matter = [ all_lives_matter, lifetime_list{s}];
+end
+
+figure(1)
+hist(all_lives_matter, 50)
+xlabel("# frames")
+ylabel("frequency")
+title('Merger liftime distribution')
+
+% ===================================================
+% Collect density 
+[ tracknum_density, weighted_polymer_dens ] = get_particle_density( state, Nframes )
+figure(2)
+plot(tracknum_density)
+xlabel("Frame index")
+ylabel("# of distinct tracks")
+title('number of live, distinct tracks vs. time. \n(ignoring state)')
+
+figure(3)
+plot(weighted_polymer_dens)
+xlabel("Frame index")
+ylabel("cumulative polymer presence")
+title('Number of monomers in frame (summed over all states)')
+
 
 % ===================================================
 % --- Tabulate luminescance by state
 % same convention as above:
  
 lumen_list = get_lumen_list ( tracks_input, state, trackdat_xyl, max_state, Nframes );
+
+for s = 1:max_state
+   mean_lumen = mean( lumen_list{s})  
+end
 
 % ===================================================
 % get diffusion constants:
