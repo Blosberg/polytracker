@@ -73,6 +73,7 @@ for s = 1:max_state
    mean_lumen = mean( lumen_list{s})  
 end
 
+
 % ===================================================
 % get diffusion constants:
 % same convention as above:
