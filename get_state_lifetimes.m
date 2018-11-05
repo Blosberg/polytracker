@@ -1,4 +1,4 @@
-function [ state_lifetime_list ] =  get_state_lifetimes ( state_matrix_allti, tracks_input, max_state , Nframes )
+function [ state_lifetime_list ] =  get_state_lifetimes ( tracks_input, state_matrix_allti, max_state , Nframes )
 % Added on boztower at 21:50 on 25.10.2018
 % 
 
