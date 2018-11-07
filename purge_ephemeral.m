@@ -6,7 +6,7 @@
   
   for ti = 1:Num_indep_tracks_RAW
       
-      # Nframes should be set to the largest value of frame# observed among all tracks
+      % Nframes should be set to the largest value of frame# observed among all tracks
       if ( tracks_input_RAW(ti).seqOfEvents(end,1) > Nframes )
         Nframes = tracks_input_RAW(ti).seqOfEvents(end,1);
       end

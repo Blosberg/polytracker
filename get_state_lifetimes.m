@@ -36,17 +36,20 @@ for ti = 1: Num_comp_tracks
          return
      end  
      
-     event_birth = event_obit ( event_obit(:,2)==1, :)(1);
-     event_death = event_obit ( event_obit(:,2)==2, :)(1);
+     event_birth = event_obit ( event_obit(:,2)==1, :); event_birth = event_birth(1);
+     event_death = event_obit ( event_obit(:,2)==2, :); event_death = event_death(1);
 
      % terminal event? if so, then it "dies" on what _would have_ been the next frame
      % original developpers were EXTREMELY sloppy on this point 
      % By their notation, the frame # from seqOfEvents points to 
      % ---- the last frame before event, if either (A) the event was terminal to the compound track 
      %                                          OR (B) Was the same frame as the birth.
-     % If neither of these things were true, only THEN does it refer to the post-event frame.
-     % --- A needlessly convoluted convention.
-     %  my convention is self-consistent: state-changes are ALWAYS noted immediately after their causes.
+     %                                          OR (C) some other as-yet undetermined condition (!!) 
+     %  if none of these things were true, then USUALLY, the event 
+     % refers to first post-event frame.
+     % -- A convoluted and imprecise convention.
+     %  I've tried my best to ensure that state-changes are ALWAYS noted immediately 
+     %  after their causes.
      
      if ( event_death  == max( tracks_input(ti).seqOfEvents(:,1) ) || event_death == event_birth)
        event_death = event_death +1;
@@ -80,3 +83,29 @@ for ti = 1: Num_comp_tracks
 
 
 end
+
+% ===================================================
+% Following documentation taken from the comments of plotComptrack:
+% Within each Tracks(i) data, there will be the following elements:
+
+%           .tracksCoordAmpCG: The positions and amplitudes of the tracked
+%                              features, after gap closing. Number of rows
+%                              = number of track segments in compound
+%                              track. Number of columns = 8 * number of
+%                              frames the compound track spans. Each row
+%                              consists of
+%                              [x1 y1 z1 a1 dx1 dy1 dz1 da1 x2 y2 z2 a2 dx2 dy2 dz2 da2 ...]
+%                              NaN indicates frames where track segments do
+%                              not exist.
+%           .seqOfEvents     : Matrix with number of rows equal to number
+%                              of events happening in a track and 4
+%                              columns:
+%                              1st: Frame where event happens;
+%                              2nd: 1 - start of track, 2 - end of track;
+%                              3rd: Index of track segment that ends or starts;
+%                              4th: NaN - start is a birth and end is a death,
+%                                   number - start is due to a split, end
+%                                   is due to a merge, number is the index
+%                                   of track segment for the merge/split.
+
+
