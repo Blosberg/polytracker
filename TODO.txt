@@ -1,6 +1,4 @@
 
---  Export histogram of life-times
-
---  plot lumenescance intensity for mono-, di-, tri-mers
+--  add correction for merger/split events with already-dimerized tracks.
 
 --  get diffusion constant 
