@@ -3,9 +3,9 @@ function [ state, max_state ] =  build_state_matrix ( tracks_input, trackmat_xyl
 % trackdat_xyl (built from previous function) is used to sort out missed frames.
 
 max_state = 1;
-Num_indep_tracks = length( tracks_input);
+Num_comp_tracks = length( tracks_input);
 
-for ti = 1:Num_indep_tracks % go through all non-ephemeral independent track sets.
+for ti = 1:Num_comp_tracks % go through all non-ephemeral independent track sets.
 
     Nsubtracks(ti) =  size( tracks_input(ti).tracksCoordAmpCG, 1);  
       

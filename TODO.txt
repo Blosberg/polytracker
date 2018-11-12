@@ -1,3 +1,8 @@
+--  double-check line 59 in create_mask: 
+    temp     = ~diff( state_matrix, 1, 2);
+    make sure that this is turning all non-zero values (including negative ones) into zeros, and all zeros into ones
+
+-- double-check your dx/dy calculation in build_xyl_trackmat.m line 40 
 
 --  add correction for merger/split events with already-dimerized tracks.
 
