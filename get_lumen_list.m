@@ -15,7 +15,7 @@ for ti = 1:Num_comp_tracks
    
   for S = 1:max_state_for_this_comptrack
 
-     mask                  =  create_mask( state_matrix{ti}, S, 0 );
+     mask                  =  create_mask( state_matrix{ti}, Nframes, S, 0 );
      if ( ~all( size(mask) == size( tracksmat_xyl(ti).Lamp ) ) )
          disp("mismatched mask dimensions for Lamp")
          return
