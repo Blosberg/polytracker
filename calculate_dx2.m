@@ -1,4 +1,4 @@
-function [ d2 ] =  calculate_dx2 (statemat_list, trackdat_xyl, Nframes, S)
+function [ d2 ] =  calculate_dx2 (state_matrices_allti, trackdat_xyl, Nframes, S)
 % collect squared change in position between adjacent frames
 
 Num_comp_tracks     = length( trackdat_xyl );
@@ -12,7 +12,7 @@ for ti = 1:Num_comp_tracks
 
    % get mask for frames where the track was in the right state in that
    % frame AND the subsequent one:
-   mask          =  create_mask( statemat_list{ti}, Nframes, S, 1 );
+   mask          =  create_mask( state_matrices_allti{ti}, Nframes, S, 1 );
 
    if( ~all( size(mask) == [size( trackdat_xyl(ti).dx, 1), (Nframes-1) ] ) )
       disp("ERROR: mismatched frame length in calc_d2")

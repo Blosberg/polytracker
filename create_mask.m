@@ -17,8 +17,8 @@ end
 if (desired_state ==0)
    % set every state >1 to 1, and set desired state to 1. Then produce the
    % monomer mask as usual
-   state_matrix = (state_matrix >=1)
-   desired_state =1
+   state_matrix = (state_matrix >=1);
+   desired_state =1;
 end
 % ---
 

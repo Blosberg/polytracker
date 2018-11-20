@@ -1,4 +1,4 @@
-function [ dnnp1 ] =  calculate_dxnnp1 (statemat, trackdat_xyl, Nframes, S)
+function [ dnnp1 ] =  calculate_dxnnp1 (state_matrices_allti, trackdat_xyl, Nframes, S)
 % collect change in position between two adjacent frames
 
 Num_comp_tracks     = length( trackdat_xyl );
@@ -11,7 +11,7 @@ dynnp1_list  = [];
 for ti = 1:Num_comp_tracks
    % get mask for frames where the track was in the right state in that
    % frame AND the subsequent one, AND the one after that:
-   mask          =  create_mask( statemat{ti}, Nframes, S, 2 );
+   mask          =  create_mask( state_matrices_allti{ti}, Nframes, S, 2 );
 
    if( size(mask,2) ~= Nframes - 2 || size(mask,1) ~= size( trackdat_xyl(ti).dx, 1) )
       disp("ERROR: mismatched frame length in calc_dnnp1" )

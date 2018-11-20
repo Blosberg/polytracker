@@ -8,4 +8,6 @@
 
 --  add correction for merger/split events with already-dimerized tracks.
 
---  get diffusion constant 
+-- check that changing state_matrix  inside create_mask doesn't affect it outside function.
+
+

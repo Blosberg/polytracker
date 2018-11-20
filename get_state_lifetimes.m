@@ -1,4 +1,4 @@
-function [ state_lifetime_list ] =  get_state_lifetimes ( tracks_input, state_matrix_allti, max_state , Nframes )
+function [ state_lifetime_list ] =  get_state_lifetimes ( tracks_input, state_matrices_allti, max_state , Nframes )
 % Added on boztower at 21:50 on 25.10.2018
 %
 
@@ -13,7 +13,7 @@ for ti = 1: Num_comp_tracks
   % disp(ti)
   Nsubtracks(ti) =  size( tracks_input(ti).tracksCoordAmpCG, 1);
 
-  if( size(state_matrix_allti{ti},2) ~= Nframes )
+  if( size(state_matrices_allti{ti},2) ~= Nframes )
     disp("state matrix size does not correspond to frame number")
     return
   end
@@ -24,8 +24,8 @@ for ti = 1: Num_comp_tracks
      % collect split and merger events in which this track was the enduring party
      Events_this_track = tracks_input(ti).seqOfEvents( tracks_input(ti).seqOfEvents(:,4) == sti  ,: );
 
-     state_birth = min( find(~isnan(state_matrix_allti{ti}(sti,:) )) );
-     state_death = max( find(~isnan(state_matrix_allti{ti}(sti,:) )) ) +1;
+     state_birth = min( find(~isnan(state_matrices_allti{ti}(sti,:) )) );
+     state_death = max( find(~isnan(state_matrices_allti{ti}(sti,:) )) ) +1;
      % track "dies" on the first frame where it begins to be NaN permanently.
      % even if this is a "hypothetical" frame, immediately following the end of the movie.
 
@@ -72,7 +72,7 @@ for ti = 1: Num_comp_tracks
 
             for j= 1:length(indices_right_shape)
                 index = indices_right_shape(j);
-                [ state_this_window, excit_duration ]  = get_state( state_matrix_allti{ti}(sti,:), Events_this_track(index,:), Events_this_track(index+1,:) );
+                [ state_this_window, excit_duration ]  = get_state( state_matrices_allti{ti}(sti,:), Events_this_track(index,:), Events_this_track(index+1,:) );
                 %                                                           ^merger event^     ,     ^split event^
                 state_lifetime_list{state_this_window} = [ state_lifetime_list{state_this_window}, excit_duration ] ;
             end
