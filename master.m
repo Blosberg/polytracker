@@ -7,5 +7,5 @@ R     = 1/6
 % import tracksFinal, somehow,
 % then run this command:
 
-[ life, dens, lumen] = polytrack( tracksFinal, Label, dt, R);
+[ life, dens, lumen, Diffdat_p, D_observations] = polytrack( tracksFinal, Label, dt, R);
 
