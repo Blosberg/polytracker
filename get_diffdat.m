@@ -10,7 +10,6 @@ dout.x          = [];
 dout.y          = [];
 dndnp1          = [];
 
-
 % -------------------------------------------------
 % ---- First collect Diffdat for each polymer state
 
@@ -26,7 +25,7 @@ for S= 1:max_state
 
     % this is the diffusion constant, using the formula from Eq. 14 (page 022726-7
     % from Vestergaard et al, Phys. Rev. E. 89, (2014)
-    Diffdat{S}.D       = (dx2_ave/2*(dt)) + (dxndxnp1_ave/dt)/dt;
+    Diffdat{S}.D       = (dx2_ave/2*(dt)) + (dxndxnp1_ave/dt);
     Diffdat{S}.sigma2  = R*(dx2_ave) + (2*R-1)*dxndxnp1_ave;
 
     if( Diffdat{S}.sigma2 <1  )

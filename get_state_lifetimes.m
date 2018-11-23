@@ -1,6 +1,5 @@
-function [ state_lifetime_list ] =  get_state_lifetimes ( tracks_input, state_matrices_allti, max_state , Nframes )
-% Added on boztower at 21:50 on 25.10.2018
-%
+function [ state_lifetime_list ] =  get_state_lifetimes ( tracks_input, state_matrices_allti, max_state, dt, Nframes )
+% Calculations the number of intervening frames within dimerization events.
 
 Num_comp_tracks     = length( tracks_input );
 for s= 1:max_state
@@ -74,7 +73,7 @@ for ti = 1: Num_comp_tracks
                 index = indices_right_shape(j);
                 [ state_this_window, excit_duration ]  = get_state( state_matrices_allti{ti}(sti,:), Events_this_track(index,:), Events_this_track(index+1,:) );
                 %                                                           ^merger event^     ,     ^split event^
-                state_lifetime_list{state_this_window} = [ state_lifetime_list{state_this_window}, excit_duration ] ;
+                state_lifetime_list{state_this_window} = [ state_lifetime_list{state_this_window}, dt * excit_duration ] ;
             end
         end
      end

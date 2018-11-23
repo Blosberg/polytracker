@@ -1,9 +1,8 @@
 % take TracksFinal type data structure and dt spacing and some label, and
 % output relevant plots
 
-function [ lifetime_list, density, lumen_list,  Diffdat_p, D_observations] =  polytrack ( tracks_input_RAW, Label, dt , R )
+function [ lifetime_list, density, lumen_list,  Diffdat_p, D_observations] =  polytrack ( tracks_input_RAW, Label, dt, px_spacing, R, Nbin)
 
-RES = 100;
 % ===================================================
 % dat_in = "E:\NikonTIRF\04-10-18\beta1\141\TrackingPackage\tracks\Channel_1_tracking_result"
 % tracksoftware = "C:\u-track\software\plotCompTrack.m"
@@ -23,7 +22,7 @@ RES = 100;
 %%  ===================================================
 % --- get xy-, dxdy-, and lumen data for each subtrack
 
-trackdat_xyl =  build_xyl_trackmat ( tracks_input, Nframes );
+trackdat_xyl =  build_xyl_trackdat ( tracks_input, px_spacing, Nframes );
 
 %%  ===================================================
 % --- Assign polymer state for each time point along each track:
@@ -36,9 +35,7 @@ trackdat_xyl =  build_xyl_trackmat ( tracks_input, Nframes );
 % Lifetime_list{1} is the list of lifetime observations for polymers in the 1 state
 % Lifetime_list{2} "" "" in the 2 state, etc.
 
-lifetime_list = get_state_lifetimes ( tracks_input, state_matrices_allti, max_state, Nframes );
-
-%%
+lifetime_list = get_state_lifetimes ( tracks_input, state_matrices_allti, max_state, dt, Nframes );
 
 all_lives_matter = [];
 
@@ -49,7 +46,7 @@ end
 
 figure(1)
 hist(all_lives_matter, 50)
-xlabel("# frames")
+xlabel(" lifetime [s]")
 ylabel("frequency")
 title( strcat('Merger liftime distribution; dataset: ', Label) )
 
@@ -95,13 +92,13 @@ title( strcat('Mean illumination by state (1=monomer, 2=dimer, etc.); dataset: '
 
 figure(6)
 subplot(2,1,1);
-hist(lumen_list{1}, RES)
+hist(lumen_list{1}, Nbin)
 xlabel("Intensity")
 ylabel("Freq")
 title( strcat('spectral distribution of monomers; dataset: ', Label) )
 
 subplot(2,1,2);
-hist(lumen_list{2}, RES)
+hist(lumen_list{2}, Nbin)
 xlabel("Intensity")
 ylabel("Freq")
 title( strcat('spectral distribution of dimers; dataset: ', Label) )
@@ -121,14 +118,14 @@ ylabel("dy");
 title( strcat('position change -scatter') );
 
 subplot(2,1,2);
-hist(dndnp1, 2*RES);
+hist(dndnp1, 2*Nbin);
 xlim([-5, 5]);
 xlabel("dx_n * dx_{n+1}");
 ylabel("Freq");
 title( strcat('Two-frame drift correlation: ', Label) );
 
 figure(8);
-hist(D_observations, 2*RES);
+hist(D_observations, 2*Nbin);
 xlabel("Observed diffusion constant");
 ylabel("Freq");
 title( strcat('Diffusion constant calculation (like in PNAS 2013): ', Label) );
