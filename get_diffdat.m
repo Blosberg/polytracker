@@ -1,35 +1,37 @@
-function [ Diffdat, dout, dndnp1, D_observations ] =  get_diffdat ( state_matrices_allti, trackdat_xyl, max_state, dt, Nframes ,R )
-% Diffdat is a data structure (list) containing diffusion parameters for each state
-% dout is an x-y array of all the changes in position. Checking for drift
+function [ diffconst_vals, d2out_Plist, dout_all, dndnp1, D_observations ] =  get_diffdat ( state_matrices_allti, trackdat_xyl, max_state, dt, Nframes ,R )
+% diffconst_vals is a data structure (list) containing average diffusion parameters for each state
+% d2out_Plist is an x-y array of all the squared changes in position for each state --likewise for _all 
+% except binned together into a single list. 
 % dndnp1 is an array of correlations between adjacent steps. Checking for drift.
 % D_observations is an array of diffusion constants calculated for each track, regardless of state or duration.
 
 % ----- initialize -----------------
 D_observations  = [];
-dout.x          = [];
-dout.y          = [];
+d2out_Plist     = [];
+dout_all.x      = [];
+dout_all.y      = [];
 dndnp1          = [];
 
 % -------------------------------------------------
-% ---- First collect Diffdat for each polymer state
+% ---- First collect diffconst_vals for each polymer state
 
 Num_comp_tracks = length( trackdat_xyl);
 
 for S= 1:max_state
 
-    dx2               = calculate_dx2(  state_matrices_allti, trackdat_xyl, Nframes, S);
-    dx2_ave           = mean(dx2);
+    [ d2out_Plist{S}.dx2, d2out_Plist{S}.dy2 ] = get_dxy2_list(  state_matrices_allti, trackdat_xyl, Nframes, S);
+    MSD_ave               = mean( ( d2out_Plist{S}.dx2 + d2out_Plist{S}.dy2 ) );
 
-    dxndxnp1          = calculate_dxnnp1( state_matrices_allti, trackdat_xyl, Nframes, S);
-    dxndxnp1_ave      = mean(dxndxnp1);
+    dxndxnp1_list         = get_dxnnp1_list( state_matrices_allti, trackdat_xyl, Nframes, S);
+    dxndxnp1_ave          = mean( dxndxnp1_list );
 
     % this is the diffusion constant, using the formula from Eq. 14 (page 022726-7
     % from Vestergaard et al, Phys. Rev. E. 89, (2014)
-    Diffdat{S}.D       = (dx2_ave/2*(dt)) + (dxndxnp1_ave/dt);
-    Diffdat{S}.sigma2  = R*(dx2_ave) + (2*R-1)*dxndxnp1_ave;
+    diffconst_vals{S}.D       = (MSD_ave/4*(dt)) + (dxndxnp1_ave/dt);
+    diffconst_vals{S}.sigma2  = R*(MSD_ave) + (2*R-1)*dxndxnp1_ave;
 
-    if( Diffdat{S}.sigma2 <1  )
-        disp( strcat("WARNING: sigma^2 =", num2str(Diffdat{S}.sigma2 ), " for state ",num2str( S ) ) )
+    if( diffconst_vals{S}.sigma2 < 1  )
+        disp( strcat("WARNING: sigma^2 =", num2str(diffconst_vals{S}.sigma2 ), " for state ",num2str( S ) ) )
     end
 
 end
@@ -76,8 +78,8 @@ for ti = 1:Num_comp_tracks
    end   
 
    
-   dout.x  = [dout.x, d.x];
-   dout.y  = [dout.y, d.y];
+   dout_all.x  = [dout_all.x, d.x];
+   dout_all.y  = [dout_all.y, d.y];
    % ----- these will constitute the x-y scatter plot ------------
    
    clear mask;

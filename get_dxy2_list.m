@@ -1,11 +1,11 @@
-function [ d2 ] =  calculate_dx2 (state_matrices_allti, trackdat_xyl, Nframes, S)
+function [ dx2_list, dy2_list ] =  get_dxy2_list (state_matrices_allti, trackdat_xyl, Nframes, S)
 % collect squared change in position between adjacent frames
 
 Num_comp_tracks     = length( trackdat_xyl );
 
 % initialize results
-dx_list = [];
-dy_list = [];
+dx2_list = [];
+dy2_list = [];
 % ---------------------------------
 
 for ti = 1:Num_comp_tracks
@@ -15,7 +15,7 @@ for ti = 1:Num_comp_tracks
    mask          =  create_mask( state_matrices_allti{ti}, Nframes, S, 1 );
 
    if( ~all( size(mask) == [size( trackdat_xyl(ti).dx, 1), (Nframes-1) ] ) )
-      disp("ERROR: mismatched frame length in calc_d2")
+      disp("ERROR: mismatched frame length in get_d2_list")
       return
    end
 
@@ -32,14 +32,13 @@ for ti = 1:Num_comp_tracks
        dy2_vec = transpose( dy2_vec );
    end
 
-   dx_list = [ dx_list , dx2_vec ];
-   dy_list = [ dy_list , dy2_vec ];
+   dx2_list = [ dx2_list , dx2_vec ];
+   dy2_list = [ dy2_list , dy2_vec ];
 
 end
 
-d2 = mean( (dx_list+dy_list)/2  );
+% d2_list = (dx_list+dy_list)/2 ;
 % if there is any mismatched dimension between x and y,
 % then there is a larger-scale problem that we want flagged.
 
 end
-

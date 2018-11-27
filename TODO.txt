@@ -1,13 +1,5 @@
---  double-check line 59 in create_mask: 
-    temp     = ~diff( state_matrix, 1, 2);
-    make sure that this is turning all non-zero values (including negative ones) into zeros, and all zeros into ones
-
 -- double check that R=1/6 works out with the calculations in Vestergaard
 
--- double-check your dx/dy calculation in build_xyl_trackmat.m line 40 
-
 --  add correction for merger/split events with already-dimerized tracks.
-
--- check that changing state_matrix  inside create_mask doesn't affect it outside function.
 
 -- fill out the README

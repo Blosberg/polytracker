@@ -1,7 +1,7 @@
 % take TracksFinal type data structure and dt spacing and some label, and
 % output relevant plots
 
-function [ lifetime_list, density, lumen_list,  Diffdat_p, D_observations] =  polytrack ( tracks_input_RAW, Label, dt, px_spacing, R, Nbin)
+function [ lifetime_list, density, lumen_list, d2out_Plist, Diffconst_vals, D_observations] =  polytrack ( tracks_input_RAW, Label, dt, px_spacing, R, Nbin)
 
 % ===================================================
 % dat_in = "E:\NikonTIRF\04-10-18\beta1\141\TrackingPackage\tracks\Channel_1_tracking_result"
@@ -108,18 +108,18 @@ title( strcat('spectral distribution of dimers; dataset: ', Label) )
 % same convention as above:
 
 
-[ Diffdat_p, d, dndnp1, D_observations ]  = get_diffdat( state_matrices_allti, trackdat_xyl, max_state, dt, Nframes, R  );
+[ Diffconst_vals, d2out_Plist, dout_all, dndnp1, D_observations ]  = get_diffdat( state_matrices_allti, trackdat_xyl, max_state, dt, Nframes, R  );
 
 figure(7);
 subplot(2,1,1);
-plot(d.x, d.y, '.');
+plot(dout_all.x, dout_all.y, '.');
 xlabel("dx");
 ylabel("dy");
 title( strcat('position change -scatter') );
 
 subplot(2,1,2);
 hist(dndnp1, 2*Nbin);
-xlim([-5, 5]);
+xlim([-0.0005, 0.0005]);
 xlabel("dx_n * dx_{n+1}");
 ylabel("Freq");
 title( strcat('Two-frame drift correlation: ', Label) );
@@ -129,7 +129,7 @@ hist(D_observations, 2*Nbin);
 xlabel("Observed diffusion constant");
 ylabel("Freq");
 title( strcat('Diffusion constant calculation (like in PNAS 2013): ', Label) );
-xlim([0, 50]);
+xlim([0, 0.0050]);
 
 % for the diffusion constant, consider these functions:
 %  http://tinevez.github.io/msdanalyzer/
@@ -138,4 +138,3 @@ xlim([0, 50]);
 %
 
 end
-
