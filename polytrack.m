@@ -1,7 +1,7 @@
 % take TracksFinal type data structure and dt spacing and some label, and
 % output relevant plots
 
-function [ lifetime_list, density, lumen_list, d2out_Plist, Diffconst_vals, D_observations] =  polytrack ( tracks_input_RAW, Label, dt, px_spacing, R, Nbin)
+function [ lifetime_list, density, lumen_list, dout_Plist, Diffconst_vals, D_observations] =  polytrack ( tracks_input_RAW, Label, dt, px_spacing, R, Nbin)
 
 % ===================================================
 % dat_in = "E:\NikonTIRF\04-10-18\beta1\141\TrackingPackage\tracks\Channel_1_tracking_result"
@@ -37,18 +37,6 @@ trackdat_xyl =  build_xyl_trackdat ( tracks_input, px_spacing, Nframes );
 
 lifetime_list = get_state_lifetimes ( tracks_input, state_matrices_allti, max_state, dt, Nframes );
 
-all_lives_matter = [];
-
-for s = 2:max_state
-   mean_lifetime = mean( lifetime_list{s}) ;
-   all_lives_matter = [ all_lives_matter, lifetime_list{s}];
-end
-
-figure(1)
-hist(all_lives_matter, 50)
-xlabel(" lifetime [s]")
-ylabel("frequency")
-title( strcat('Merger liftime distribution; dataset: ', Label) )
 
 %%  ===================================================
 % Collect density
@@ -108,7 +96,7 @@ title( strcat('spectral distribution of dimers; dataset: ', Label) )
 % same convention as above:
 
 
-[ Diffconst_vals, d2out_Plist, dout_all, dndnp1, D_observations ]  = get_diffdat( state_matrices_allti, trackdat_xyl, max_state, dt, Nframes, R  );
+[ Diffconst_vals, dout_Plist, dout_all, dndnp1, D_observations ]  = get_diffdat( state_matrices_allti, trackdat_xyl, max_state, dt, Nframes, R  );
 
 figure(7);
 subplot(2,1,1);

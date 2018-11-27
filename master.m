@@ -25,5 +25,20 @@ Nbin       = 100;        %--- Resolution (number of bins) for your histograms.
 %% ==========================================================================
 %% Now run the script: 
 
-[ life, dens, lumen, Diffdat_p, D_observations] = polytrack( tracksFinal, Label, dt, px_spacing, R, Nbin);
+[ lifetime_list, density, lumen_list, dout_Plist, Diffconst_vals, D_observations] = polytrack( tracksFinal, Label, dt, px_spacing, R, Nbin);
 
+% -----------------------------
+% and plot the results:
+
+max_state = length(lifetime_list);
+all_dimerizations = [];
+for s = 2:max_state
+   mean_lifetime = mean( lifetime_list{s}) ;
+   all_dimerizations = [ all_dimerizations, lifetime_list{s}];
+end
+
+figure(1);
+hist(all_dimerizations, 50);
+xlabel(" lifetime [s]")
+ylabel("frequency")
+title( strcat('Merger liftime distribution; dataset: ', Label) )
