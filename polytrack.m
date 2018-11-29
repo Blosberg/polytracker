@@ -1,7 +1,7 @@
 % take TracksFinal type data structure and dt spacing and some label, and
 % output relevant plots
 
-function [ lifetime_list, density, lumen_list, dout_Plist, Diffconst_vals, D_observations] =  polytrack ( tracks_input_RAW, Label, dt, px_spacing, R, Nbin)
+function [ lifetime_list, density, lumen_list, dout_Plist, Diffconst_vals, D_observations] =  polytrack ( tracks_input_RAW, Label, dt, px_spacing, R, Area, Nbin)
 
 % ===================================================
 % dat_in = "E:\NikonTIRF\04-10-18\beta1\141\TrackingPackage\tracks\Channel_1_tracking_result"
@@ -41,6 +41,11 @@ lifetime_list = get_state_lifetimes ( tracks_input, state_matrices_allti, max_st
 %%  ===================================================
 % Collect density
 [ density.monomers, density.tracks, density.weighted_polymers ] = get_particle_density( state_matrices_allti, Nframes );
+
+density.monomers = (1/Area)* density.monomers;
+density.tracks   = (1/Area)* density.tracks;
+density.weighted_polymers = (1/Area)* density.weighted_polymers;
+
 figure(2)
 tvals = dt*linspace(1,Nframes,Nframes);
 
