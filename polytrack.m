@@ -122,7 +122,7 @@ hist(D_observations, 2*Nbin);
 xlabel("Observed diffusion constant");
 ylabel("Freq");
 title( strcat('Diffusion constant calculation (like in PNAS 2013): ', Label) );
-xlim([0, 0.0050]);
+xlim([0, 0.30]);
 
 % for the diffusion constant, consider these functions:
 %  http://tinevez.github.io/msdanalyzer/

@@ -27,7 +27,7 @@ for S= 1:max_state
 
     % this is the diffusion constant, using the formula from Eq. 14 (page 022726-7
     % from Vestergaard et al, Phys. Rev. E. 89, (2014)
-    diffconst_vals{S}.D       = (MSD_ave/4*(dt));
+    diffconst_vals{S}.D       = (MSD_ave/(4*dt));
     diffconst_vals{S}.sigma2  = R*(MSD_ave) + (2*R-1)*dxndxnp1_ave;
 
     SNR = sqrt( (diffconst_vals{S}.D + (dxndxnp1_ave/dt))* dt / diffconst_vals{S}.sigma2 );

@@ -24,6 +24,9 @@ for ti = 1:Num_comp_tracks
 
        xdat_compwindow = px_spacing * tracks_input(ti).tracksCoordAmpCG(sti,1:8:end);
        ydat_compwindow = px_spacing * tracks_input(ti).tracksCoordAmpCG(sti,2:8:end);
+       % the above sets the raw *COORDINATES* in units of micrometers. All
+       % diffs are carried out accordingly.
+
        Adat_compwindow = tracks_input(ti).tracksCoordAmpCG(sti,4:8:end);
 
        trackdat_xyl(ti).xpos(sti,:) = [ repmat(NaN,[1 , (comptrack_birth-1)]), xdat_compwindow, repmat(NaN,[1 , comptrack_death_lag]) ];

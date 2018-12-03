@@ -1,4 +1,4 @@
-function [ lumen_list ] =  get_lumen_list ( tracks_input, state_matrices_allti, tracksmat_xyl, max_state , Nframes )
+function [ lumen_list ] =  get_lumen_list ( tracks_input, state_matrices_allti, trackdat_xyl, max_state , Nframes )
 % builds a list of observed luminescance intensities for each type of polymer (i.e. size{1}, {2}, etc.)
 
 Num_comp_tracks     = length( tracks_input );
@@ -16,15 +16,15 @@ for ti = 1:Num_comp_tracks
   for S = 1:max_state_for_this_comptrack
 
      mask                  =  create_mask( state_matrices_allti{ti}, Nframes, S, 0 );
-     if ( ~all( size(mask) == size( tracksmat_xyl(ti).Lamp ) ) )
+     if ( ~all( size(mask) == size( trackdat_xyl(ti).Lamp ) ) )
          disp("mismatched mask dimensions for Lamp")
          return
       end    
     
     if (  size(mask,1) ==1)       
-      lumen_list{S}    = [ lumen_list{S} ,  tracksmat_xyl(ti).Lamp(mask==1) ];    
+      lumen_list{S}    = [ lumen_list{S} ,  trackdat_xyl(ti).Lamp(mask==1) ];    
     else
-      lumen_list{S}    = [ lumen_list{S} ,  transpose(tracksmat_xyl(ti).Lamp(mask==1)) ]; 
+      lumen_list{S}    = [ lumen_list{S} ,  transpose(trackdat_xyl(ti).Lamp(mask==1)) ]; 
     end
    end
    
