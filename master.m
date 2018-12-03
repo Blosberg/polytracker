@@ -10,7 +10,7 @@
 %% 
 % ---- DEFINE VARIABLES RELEVANT TO THIS DATASET
 
-dt         = 0.01;       %--- time spacing between frames
+dt         = 0.04;       %--- time spacing between frames
 px_spacing = 0.106941;   %--- pixel spacing (assuming tracksFinal stores position
                          %    coordinates in units of pixels, this factor converts 
                          %    the spatial dimension into micrometers.
@@ -24,7 +24,7 @@ Area       = 144;       % this is the cross-sectional area of the field of view
 
 Label      = "Before-DAMGO"; %--- Some descriptive name for your dataset.
 
-Nbin       = 100;        %--- Resolution (number of bins) for your histograms. 
+Nbin       = 200;        %--- Resolution (number of bins) for your histograms. 
 
 %% ==========================================================================
 %% Now run the script: 

@@ -7,6 +7,18 @@ Num_comp_tracks = length( tracks_input);
 
 for ti = 1:Num_comp_tracks % go through all non-ephemeral independent track sets.
 
+    SoE_statemat_init{ti} = build_SoE_state_matrix_init ( tracks_input(ti).seqOfEvents,  size(tracks_input(ti).tracksCoordAmpCG,1) );
+    
+    % check that the lowest numeric (i.e. non-NaN) value is >1
+    if( min( SoE_statemat_init{ti}( ~isnan( SoE_statemat_init{ti} ) ) ) < 1 )
+        disp("implausible value.")
+    end
+end
+
+% =============================================================================
+
+for ti = 1:Num_comp_tracks % go through all non-ephemeral independent track sets.
+
     Nsubtracks(ti) =  size( tracks_input(ti).tracksCoordAmpCG, 1);  
       
     state{ti} = ones( Nsubtracks(ti), Nframes );

@@ -112,7 +112,7 @@ title( strcat('position change -scatter') );
 
 subplot(2,1,2);
 hist(dndnp1, 2*Nbin);
-xlim([-0.0005, 0.0005]);
+xlim([-0.05, 0.05]);
 xlabel("dx_n * dx_{n+1}");
 ylabel("Freq");
 title( strcat('Two-frame drift correlation: ', Label) );
