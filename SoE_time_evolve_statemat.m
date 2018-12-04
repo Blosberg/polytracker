@@ -1,13 +1,10 @@
-function [ SoE_state_matrix_init ] =  build_SoE_state_matrix_init ( SoE, Nsubtracks )
+function [ SoE_state_matrix ] =  SoE_time_evolve_statemat ( SoE, Nsubtracks, adj_mat )
 % Input: matrix sequence of events
+% Output: matrix of tracks vs. Events. Uncorrected. values may be 0 or negative,
+% and, if so, will be corrected by a separate script.
 
-
-% SeqofEvents (SoE), matrix rows follow this convention:
-% [ frame#,  1/2=birth/death, THIS track # , othertrack split/merge with ]
-
-Nevents      = size( SoE, 1 );
+Nevents               = size( SoE, 1 );
 SoE_state_matrix_init = NaN( [ Nevents, Nsubtracks] );
-
 
 % initialize:
 prev_states  = NaN( [ 1, Nsubtracks ] );
@@ -19,21 +16,23 @@ for evi = 1:Nevents
        prev_states = SoE_state_matrix_init(evi-1,:);
     end
 
-    % set all states equal to previous event ( relevant tracks will be over-written)
+    % preserve states from previous event for tracks irrelevant to the present event
+    % ( relevant tracks will be over-written later)
     SoE_state_matrix_init( evi, : )          = prev_states;
 
     %-------------------- BIRTH: --------------------
     if ( SoE(evi,2) == 1)
-       SoE_state_matrix_init( evi, SoE(evi,3) ) = 1; % initialize as monomer
+       SoE_state_matrix_init( evi, SoE(evi,3) ) = 1 + adj_mat(evi, SoE(evi,3) ) ; 
        %   index for this track:  ^ 
+       % initialize as monomer + whatever is indicated by the adjustment matrix
 
        % ---- born through split?
        if ( ~isnan( SoE(evi,4) )  )
-           SoE_state_matrix_init( evi, SoE(evi,4) ) = prev_states ( SoE(evi, 4) ) -1; 
+           SoE_state_matrix_init( evi, SoE(evi,4) ) = prev_states ( SoE(evi, 4) ) -1 - adj_mat(evi, SoE(evi,3)) ; 
        %   index for other track:     ^                             ^ 
-       % Parent track is decremented by 1, under the assumption that the born
-       % track is always initialized in the monomer state) This assumption is
-       % revisited only when necessary in another function. 
+       % Parent track decreases by (1+adjustment_matrix of born track at this event), 
+       % The default assumption being that the born track is always is a 
+       %  monomer state). 
        end
 
     %-------------------- DEATH: --------------------
@@ -51,8 +50,6 @@ for evi = 1:Nevents
     end
 
 end % end of loop through Events.
-
-
 
 
 end % end of function

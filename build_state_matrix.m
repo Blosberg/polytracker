@@ -7,15 +7,23 @@ Num_comp_tracks = length( tracks_input);
 
 for ti = 1:Num_comp_tracks % go through all non-ephemeral independent track sets.
 
-    SoE_statemat_init{ti} = build_SoE_state_matrix_init ( tracks_input(ti).seqOfEvents,  size(tracks_input(ti).tracksCoordAmpCG,1) );
+    Nevents    = size(tracks_input(ti).seqOfEvents,1);
+    Nsubtracks = size(tracks_input(ti).tracksCoordAmpCG,1); 
+
+    % initial "adjustment matrix" is all zeros.
+    adj_mat_init     = zeros(Nevents, Nsubtracks);
+
+    % and the initial state_matrix is calculated according to default assumptions.
+    SoE_statemat{ti} = SoE_time_evolve_matrix ( tracks_input(ti).seqOfEvents,Nsubtracks, adj_mat_init);
     
-    % check that the lowest numeric (i.e. non-NaN) value is >1
-    if( min( SoE_statemat_init{ti}( ~isnan( SoE_statemat_init{ti} ) ) ) < 1 )
-        disp("implausible value.")
+    % if states are untenable, then these assumptions are revised.
+    if( ~check_states_tenable ( SoE_statemat{ti} ) )
+        [ SoE_statemat{ti}, adj_mat{ti} ]= SoE_revise_statmat ( tracks_input(ti).seqOfEvents, SoE_statemat{ti} )
     end
 end
-
+% 
 % =============================================================================
+% --- POPULATE THE PER-FRAME STATE MATRIX ----
 
 for ti = 1:Num_comp_tracks % go through all non-ephemeral independent track sets.
 
