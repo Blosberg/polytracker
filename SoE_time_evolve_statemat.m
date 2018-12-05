@@ -22,29 +22,29 @@ for evi = 1:Nevents
 
     %-------------------- BIRTH: --------------------
     if ( SoE(evi,2) == 1)
-       SoE_state_matrix_init( evi, SoE(evi,3) ) = 1 + adj_mat(evi, SoE(evi,3) ) ; 
-       %   index for this track:  ^ 
+       SoE_state_matrix_init( evi, SoE(evi,3) ) = 1 + adj_mat(evi, SoE(evi,3) ) ;
+       %   index for this track:  ^
        % initialize as monomer + whatever is indicated by the adjustment matrix
 
        % ---- born through split?
        if ( ~isnan( SoE(evi,4) )  )
-           SoE_state_matrix_init( evi, SoE(evi,4) ) = prev_states ( SoE(evi, 4) ) -1 - adj_mat(evi, SoE(evi,3)) ; 
-       %   index for other track:     ^                             ^ 
-       % Parent track decreases by (1+adjustment_matrix of born track at this event), 
-       % The default assumption being that the born track is always is a 
-       %  monomer state). 
+           SoE_state_matrix_init( evi, SoE(evi,4) ) = prev_states ( SoE(evi, 4) ) -1 - adj_mat(evi, SoE(evi,3)) ;
+       %   index for other track:     ^                             ^
+       % Parent track decreases by (1+adjustment_matrix of born track at this event),
+       % The default assumption being that the born track is always is a
+       %  monomer state).
        end
 
     %-------------------- DEATH: --------------------
     else if ( SoE(evi,2) == 2 )
 
-       SoE_state_matrix_init( evi, SoE(evi,3) ) = NaN;  
-       %   index for this track:  ^ 
+       SoE_state_matrix_init( evi, SoE(evi,3) ) = NaN;
+       %   index for this track:  ^
 
        % ---- death through merger ?
        if ( ~isnan( SoE(evi,4) )  )
            SoE_state_matrix_init( evi, SoE(evi,4) ) = prev_states ( SoE(evi, 4) ) + prev_states ( SoE(evi, 3) ) ; % increment by state of dying track
-       %   index for other track:     ^ 
+       %   index for other track:     ^
        end
 
     end
