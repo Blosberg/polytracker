@@ -73,7 +73,7 @@ title( strcat('Fraction of monomers/tracks; dataset: ', Label) )
 lumen_list = get_lumen_list ( tracks_input, state_matrices_allti, trackdat_xyl, max_state, Nframes );
 
 for s = 1:max_state
-   mean_lumen(s) = mean( lumen_list{s});
+   mean_lumen(s) = mean( lumen_list{s} );
 end
 
 figure(5)

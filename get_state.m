@@ -21,8 +21,8 @@ if( size(S,2) ~= 1 )
 end
 
 if( state_vector_ti_sti( Event_i(1) ) -  state_vector_ti_sti( Event_i(1)-1 ) <=0  || state_vector_ti_sti( Event_f(1) ) - state_vector_ti_sti( Event_f(1)-1 ) >=0 )
-   disp("ERROR: unexpected state transition trajectory during excitation window")
-   return
+   disp("WARNING: irregular data point observed: unexpected state transition trajectory during excitation window -- perhaps an event is placed out of order?")
+%   return
 end
 
 state_output          = S;

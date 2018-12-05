@@ -4,20 +4,19 @@ function [ beta_viable ] = SoE_asses_beta_viability( SoE_in, alpha_track, SoE_st
 % SeqofEvents (SoE), matrix rows follow this convention:
 % [ frame#,  1/2=birth/death, THIS track # , othertrack split/merge with ]
 
-alpha_birth = find_birth_event(alpha_tracks(tr) );
+alpha_birth = find_birth_event(  SoE_in, alpha_track );
 
 beta_track = SoE_in(alpha_birth, 4);
 
-
-Track_following=beta_track;
-start_following=alpha_birth;
+Track_under_focus=beta_track;      % the track we are currently looking at to see if it is carrying away superfluous particles.
+event_focus_commence=alpha_birth;  % the point in time from which we begin to look at this particle.
 finished = false;
 
 while( ~finished)
 
-   death = find_death_event(Track_following);
+   death = find_death_event( SoE_in, Track_under_focus);
 
-   if ( ~all( SoE_statemat( start_following:(death-1), Track_following) >=2 ) )
+   if ( ~all( SoE_statemat( event_focus_commence:(death-1), Track_under_focus) >=2 ) )
       % cannot spare an extra particle before death.
       beta_viable = false;
       finished    = true;
@@ -30,8 +29,8 @@ while( ~finished)
    else
       % CAN spare, but dies merging into something else. Follow THAT one
       % now.
-      start_following = death;
-      Track_following = SoE_in(death,4);
+      event_focus_commence = death;
+      Track_under_focus = SoE_in(death,4);
    end
 
 end

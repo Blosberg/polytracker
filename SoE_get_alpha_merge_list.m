@@ -8,18 +8,21 @@ alpha_merge_list = [];
 if ( Event == 1 )
    return; % @@@ TODO: check that the right value is returned here
 else
-   Events_timely = SoE_in(1:(Event-1) );
+   SoE_timely = SoE_in(1:(Event-1), : );
 end
 
 % list of events for deaths by merging into "Track"
-death_mergers = ( SoE(:,2) == 2 && SoE(:,4)==Track);
+death_merger_events = find( (SoE_timely(:,2) == 2).*(SoE_timely(:,4)==Track) );
 
-if ( length(death_mergers) >= 1 )
+if ( length(death_merger_events) >= 1 )
+    
     % corresponding track numbers:
-    merging_tracks_list = SoE( death_mergers, 3);
-    for tr = 1:length( merging_tracks_list )
-       birth_event = find_birth_event(SoE_in, merging_track_list(tr));
-       if( ~isnan(SoE_in(birth_event,4)) )
+    merging_track_list = SoE_in( death_merger_events, 3);
+    
+    for tr = 1:length( merging_track_list )
+      
+       alpha_birth_event = find_birth_event(SoE_in, merging_track_list(tr));
+       if( ~isnan(SoE_in(alpha_birth_event,4)) )
           alpha_merge_list = [alpha_merge_list, merging_track_list(tr)];
        end
 
