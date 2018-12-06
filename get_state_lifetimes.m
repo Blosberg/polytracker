@@ -9,7 +9,6 @@ end
 % go through all non-ephemeral compound track sets.
 for ti = 1: Num_comp_tracks
 
-  % disp(ti)
   Nsubtracks(ti) =  size( tracks_input(ti).tracksCoordAmpCG, 1);
 
   if( size(state_matrices_allti{ti},2) ~= Nframes )
@@ -17,14 +16,13 @@ for ti = 1: Num_comp_tracks
     return
   end
 
-
   for  sti = 1:Nsubtracks(ti)
 
      % collect split and merger events in which this track was the enduring party
      Events_this_track = tracks_input(ti).seqOfEvents( tracks_input(ti).seqOfEvents(:,4) == sti  ,: );
 
-     state_birth = min( find(~isnan(state_matrices_allti{ti}(sti,:) )) );
-     state_death = max( find(~isnan(state_matrices_allti{ti}(sti,:) )) ) +1;
+     birth_track_sti_via_states = min( find(~isnan(state_matrices_allti{ti}(sti,:) )) );
+     death_track_sti_via_states = max( find(~isnan(state_matrices_allti{ti}(sti,:) )) ) +1;
      % track "dies" on the first frame where it begins to be NaN permanently.
      % even if this is a "hypothetical" frame, immediately following the end of the movie.
 
@@ -35,8 +33,8 @@ for ti = 1: Num_comp_tracks
          return
      end
 
-     event_birth = event_obit ( event_obit(:,2)==1, :); event_birth = event_birth(1);
-     event_death = event_obit ( event_obit(:,2)==2, :); event_death = event_death(1);
+     birth_track_sti_via_events = event_obit ( event_obit(:,2)==1, :); birth_track_sti_via_events = birth_track_sti_via_events(1);
+     death_track_sti_via_events = event_obit ( event_obit(:,2)==2, :); death_track_sti_via_events = death_track_sti_via_events(1);
 
      % terminal event? if so, then it "dies" on what _would have_ been the next frame
      % original developpers were EXTREMELY sloppy on this point
@@ -50,12 +48,12 @@ for ti = 1: Num_comp_tracks
      %  I've tried my best to ensure that state-changes are ALWAYS noted immediately
      %  after their causes.
 
-     if ( event_death  == max( tracks_input(ti).seqOfEvents(:,1) ) || event_death == event_birth)
-       event_death = event_death +1;
+     if ( death_track_sti_via_events  == max( tracks_input(ti).seqOfEvents(:,1) ) || death_track_sti_via_events == birth_track_sti_via_events)
+       death_track_sti_via_events = death_track_sti_via_events +1;
      end
 
      % and sometimes the event is recorded before-frame anyway, for no apparent reason.
-     if( state_birth ~= event_birth || abs( state_death - event_death)>1 )
+     if( birth_track_sti_via_states ~= birth_track_sti_via_events || abs( death_track_sti_via_states - death_track_sti_via_events)>1 )
         disp("Inconsistent birth/death time point between state and event calculation.")
         return
      end
