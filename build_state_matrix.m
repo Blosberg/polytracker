@@ -46,8 +46,11 @@ for ti = 1:Num_comp_tracks % go through all non-ephemeral independent track sets
        % last event: only overwrite states if this is NOT the movie-ending "event" where everything stops.
        state{ti}( :, SoE(Nevents_current_ti,1 ):end) = ones( Nsubtracks(ti), Nframes - SoE(Nevents_current_ti,1 ) + 1 ).*(SoE_statemat{ti}(Nevents_current_ti,:)');
     end
-    
-end
 
+    % over-write temporary gap-frams with NaN state (i.e. particle briefly disappears and then reappears. 
+    % State during that frame is NaN )    
+    state{ti}( isnan(trackmat_xyl(ti).Lamp) ) = NaN ;
 
-end
+end % --- finished for-loop over ti through all non-ephemeral compound track sets.
+
+end % end of function
