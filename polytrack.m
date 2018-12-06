@@ -73,7 +73,7 @@ title( strcat('Fraction of monomers/tracks; dataset: ', Label) )
 lumen_list = get_lumen_list ( tracks_input, state_matrices_allti, trackdat_xyl, max_state, Nframes );
 
 for s = 1:max_state
-   mean_lumen(s) = mean( lumen_list{s});
+   mean_lumen(s) = mean( lumen_list{s} );
 end
 
 figure(5)
@@ -112,7 +112,7 @@ title( strcat('position change -scatter') );
 
 subplot(2,1,2);
 hist(dndnp1, 2*Nbin);
-xlim([-0.0005, 0.0005]);
+xlim([-0.05, 0.05]);
 xlabel("dx_n * dx_{n+1}");
 ylabel("Freq");
 title( strcat('Two-frame drift correlation: ', Label) );

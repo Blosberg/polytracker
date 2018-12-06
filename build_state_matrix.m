@@ -7,76 +7,50 @@ Num_comp_tracks = length( tracks_input);
 
 for ti = 1:Num_comp_tracks % go through all non-ephemeral independent track sets.
 
-    Nsubtracks(ti) =  size( tracks_input(ti).tracksCoordAmpCG, 1);  
-      
-    state{ti} = ones( Nsubtracks(ti), Nframes );
+    Nevents_current_ti   = size(tracks_input(ti).seqOfEvents,      1);
+    Nsubtracks(ti)       = size(tracks_input(ti).tracksCoordAmpCG, 1);
 
-    %initialize "state" by assuming monomer status throughout entire movie.
-   
-    for evi = 1:size( tracks_input(ti).seqOfEvents, 1) % loop through the events that occured throughout this track
-       
-        if ( tracks_input(ti).seqOfEvents(evi,2) == 1)% ------- BIRTH:
-           
-            % ---- set states for _THIS_ subtrack. Is it delayed from 1 ?
-            if ( tracks_input(ti).seqOfEvents(evi,1) > 1  )
-                % subtrack does not begin at frame 1; set state for all previous time-points to NaN
-                state{ti}( tracks_input(ti).seqOfEvents(evi,3), 1:((tracks_input(ti).seqOfEvents(evi,1))-1)) = NaN ;
-                %                    ^ col. 3 refers to  the subtrack that just got born.
-            end
-           
-            % ---- If born through split, update state of corresponding track
-            if ( ~isnan( tracks_input(ti).seqOfEvents(evi,4) )  )
-                % if so, then decrement state of the other track affected by this
-                % point on to the end of the full track.
-                temp_dec = state{ti}( tracks_input(ti).seqOfEvents(evi,4 ), tracks_input(ti).seqOfEvents(evi,1) : Nframes );
-                           state{ti}( tracks_input(ti).seqOfEvents(evi,4 ), tracks_input(ti).seqOfEvents(evi,1) : Nframes ) = temp_dec - 1;
-                %                    |                                      |    |                                  |              |             |
-                %                    |^row number corresponding to index of |    | ^ Frame  # provided by 1rst col. |              |             |
-                %                    |other subtrack affected by this event |    | From this event to end time      |              | decrement state |
-            end
-        end
-       
-        if ( tracks_input(ti).seqOfEvents(evi,2) == 2 )% ------- DEATH:
-            % evi describes a Track that has just "died":
-           
-            % ---- non-terminal case?
-            if ( tracks_input(ti).seqOfEvents(evi,1) < Nframes  )
-                % subtrack does not end at the very last frame; set all states
-                % from this point to the end as NaN
-                state{ti}( tracks_input(ti).seqOfEvents(evi,3) , ((tracks_input(ti).seqOfEvents(evi,1))+1): Nframes ) = NaN ;
-                %                                           ^ col. 3 =subtrack that just died.
-                       
-             end % finished "if" this event was non-terminal (determines 
-          
-                          % ---- death through merger ?
-             if ( ~isnan( tracks_input(ti).seqOfEvents(evi,4) )  )
-                   % if so, then increment state of the other track affected by this
-                   % point on to the end of the full track.
-                   temp_inc = state{ti}( tracks_input(ti).seqOfEvents(evi,4 ), (tracks_input(ti).seqOfEvents(evi,1) ): Nframes );
-                              state{ti}( tracks_input(ti).seqOfEvents(evi,4 ), (tracks_input(ti).seqOfEvents(evi,1) ): Nframes ) = temp_inc + 1 ;
-                   %                    |                                  |   |                                            |    |                 |
-                   %                    |^row number == index of other     |   | "now" == Frame (from 1rst col.)^           |    |                 |
-                   %                    | subtrack affected by this event  |   |             from now to end of run   ^     |    | increment state |
-               
-             end % --- finished "if" checking for merger
-          
-        end % --- finished "if" checking for death
-            
-       
-    end % --- finished "for loop" over evi
-  
+    % initial "adjustment matrix" is all zeros.
+    adj_mat_init         = zeros(Nevents_current_ti, Nsubtracks(ti));
 
-    %---- set states relative to baseline (minimal == 1) 
-    for sti = 1:Nsubtracks(ti) % within each subtrack set minimal finite state to 1, and all others relative to that.
-        offset = 1 - min( state{ti}(sti,:) );
-        state{ti}(sti,:) = state{ti}(sti,:) + offset; % ==   
-        
-        state{ti}(sti,  isnan(trackmat_xyl(ti).Lamp(sti,:)) ) = NaN ;
+    % and the initial state_matrix is calculated according to default assumptions.
+    SoE_statemat{ti}     = SoE_time_evolve_statemat ( tracks_input(ti).seqOfEvents, Nsubtracks(ti), adj_mat_init);
+
+    % if states are untenable, then these assumptions are revised.
+    if( ~check_states_tenable ( SoE_statemat{ti} ) )
+        [ SoE_statemat{ti}, adj_mat{ti} ]= SoE_revise_statemat ( tracks_input(ti).seqOfEvents, SoE_statemat{ti} );
     end
-   
-    % max_state => largest state seen so far
-    max_state = max( [ max( state{ti} ), max_state  ]);
-   
-end % --- finished for-loop over ti through all non-ephemeral independent track sets.
-
+    
+    max_state = max( max_state, max( max( SoE_statemat{ti})) );
+    
 end
+
+% =============================================================================
+% --- POPULATE THE PER-FRAME STATE MATRIX ----
+
+for ti = 1:Num_comp_tracks % go through all non-ephemeral independent track sets.
+
+    SoE                  = tracks_input(ti).seqOfEvents;
+
+    Nsubtracks(ti)       = size( tracks_input(ti).tracksCoordAmpCG, 1);
+    Nevents_current_ti   = size( SoE, 1 );
+
+    state{ti}      = NaN( [ Nsubtracks(ti), Nframes ] );
+
+    for evi = 1:(Nevents_current_ti-1) % loop through the events that occured throughout this track
+        % the last frame (starting on the next event) will be over-written in all cases but the last.
+        state{ti}( :, SoE(evi,1 ): SoE(evi+1,1) ) = ones( Nsubtracks(ti), SoE(evi+1,1)- SoE(evi,1 ) + 1 ).*(SoE_statemat{ti}(evi,:)');
+    end
+    
+    if( SoE( Nevents_current_ti,1 ) < Nframes )
+       % last event: only overwrite states if this is NOT the movie-ending "event" where everything stops.
+       state{ti}( :, SoE(Nevents_current_ti,1 ):end) = ones( Nsubtracks(ti), Nframes - SoE(Nevents_current_ti,1 ) + 1 ).*(SoE_statemat{ti}(Nevents_current_ti,:)');
+    end
+
+    % over-write temporary gap-frams with NaN state (i.e. particle briefly disappears and then reappears. 
+    % State during that frame is NaN )    
+    state{ti}( isnan(trackmat_xyl(ti).Lamp) ) = NaN ;
+
+end % --- finished for-loop over ti through all non-ephemeral compound track sets.
+
+end % end of function
