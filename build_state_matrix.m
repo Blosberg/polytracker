@@ -20,9 +20,9 @@ for ti = 1:Num_comp_tracks % go through all non-ephemeral independent track sets
     if( ~check_states_tenable ( SoE_statemat{ti} ) )
         [ SoE_statemat{ti}, adj_mat{ti} ]= SoE_revise_statemat ( tracks_input(ti).seqOfEvents, SoE_statemat{ti} );
     end
-    
+
     max_state = max( max_state, max( max( SoE_statemat{ti})) );
-    
+
 end
 
 % =============================================================================
@@ -41,14 +41,10 @@ for ti = 1:Num_comp_tracks % go through all non-ephemeral independent track sets
         % the last frame (starting on the next event) will be over-written in all cases but the last.
         state{ti}( :, SoE(evi,1 ): SoE(evi+1,1) ) = ones( Nsubtracks(ti), SoE(evi+1,1)- SoE(evi,1 ) + 1 ).*(SoE_statemat{ti}(evi,:)');
     end
-    
-    if( SoE( Nevents_current_ti,1 ) < Nframes )
-       % last event: only overwrite states if this is NOT the movie-ending "event" where everything stops.
-       state{ti}( :, SoE(Nevents_current_ti,1 ):end) = ones( Nsubtracks(ti), Nframes - SoE(Nevents_current_ti,1 ) + 1 ).*(SoE_statemat{ti}(Nevents_current_ti,:)');
-    end
 
-    % over-write temporary gap-frams with NaN state (i.e. particle briefly disappears and then reappears. 
-    % State during that frame is NaN )    
+    % Now over-write any temporary gap-frames in the tracjs with NaN state
+    % these are frames where a particle briefly disappears and then reappears
+    % these frames are eliminated from consideration.
     state{ti}( isnan(trackmat_xyl(ti).Lamp) ) = NaN ;
 
 end % --- finished for-loop over ti through all non-ephemeral compound track sets.
