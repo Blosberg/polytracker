@@ -16,7 +16,7 @@ function [ lifetime_list, density, lumen_list, dout_Plist, Diffconst_vals, D_obs
 
 
 % --- FILTER OUT EPHEMERAL TRACKS:
-[ tracks_input, Nframes ]  = purge_ephemeral( tracks_input_RAW );
+[ tracks_input, Nframes ]  = purge_ephemeral_and_disordered( tracks_input_RAW );
 
 
 %%  ===================================================

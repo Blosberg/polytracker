@@ -2,6 +2,7 @@
 % videos
 % Copyright © 2017 Bren Osberg <brendan.osberg@mdc-berlin.de>
 
+% last updated Dec. 7 2018
 % ---- master file to run the polytracker software. You should be able 
 % to hit ctrl+Enter through the commands here after loading your tracksFinal data
 % structure into the workspace 

@@ -37,16 +37,49 @@ for ti = 1:Num_comp_tracks % go through all non-ephemeral independent track sets
 
     state{ti}      = NaN( [ Nsubtracks(ti), Nframes ] );
 
-    for evi = 1:(Nevents_current_ti-1) % loop through the events that occured throughout this track
-        % the last frame (starting on the next event) will be over-written in all cases but the last.
-        state{ti}( :, SoE(evi,1 ): SoE(evi+1,1) ) = ones( Nsubtracks(ti), SoE(evi+1,1)- SoE(evi,1 ) + 1 ).*(SoE_statemat{ti}(evi,:)');
+    for evi = 1:(Nevents_current_ti-1) 
+    % loop through the events that occured throughout this track
+        current_event_frame = SoE(evi  , 1 );
+        next_event_frame    = SoE(evi+1, 1 );
+        
+        
+        if( (next_event_frame - current_event_frame) >= 1 )
+            % Define state for the current frame up to BUT NOT INCLUDING the 
+            % frame of the next event.
+            state{ti}( :, current_event_frame : next_event_frame -1 ) = ones( Nsubtracks(ti), next_event_frame - current_event_frame ).*(SoE_statemat{ti}(evi,:)');
+        end
+    
+        simultaneous_events =  find( SoE(:,1)==current_event_frame );
+        % over-write states for this FRAME among active tracks (including
+        % the present one).
+        for sevi = 1:length(simultaneous_events)
+            sev = simultaneous_events( sevi ); % sev is the simultaneous event index in the original SoE 
+            state{ti}( SoE(sev, 3), SoE(sev, 1) ) = SoE_get_active_track_state( trackmat_xyl(ti).Lamp( SoE(sev,3), SoE(sev,1) ), SoE_statemat{ti}, sev, SoE(sev,3) );
+        end
+        %                                                                                          ^ active track, ^ time                               
     end
 
-    % Now over-write any temporary gap-frames in the tracjs with NaN state
-    % these are frames where a particle briefly disappears and then reappears
-    % these frames are eliminated from consideration.
-    state{ti}( isnan(trackmat_xyl(ti).Lamp) ) = NaN ;
+    % now the last one:
+    evi = Nevents_current_ti;
+    current_event_frame = SoE(Nevents_current_ti, 1 );    
 
+    % set all non-active tracks.
+    state{ti}( :, SoE(evi,1 ) )          = ones( Nsubtracks(ti), 1 ).*(SoE_statemat{ti}(evi,:)');
+
+    simultaneous_events =  find( SoE(:,1)==current_event_frame );
+    % over-write states for this FRAME among active tracks (including
+    % the present one).
+    for sevi = 1:length(simultaneous_events)
+        sev = simultaneous_events( sevi ); % sev is the simultaneous event index in the original SoE
+        state{ti}( SoE(sev, 3), SoE(sev, 1) ) = SoE_get_active_track_state( trackmat_xyl(ti).Lamp( SoE(sev,3), SoE(sev,1) ), SoE_statemat{ti}, sev, SoE(sev,3) );
+    end
+    
+    % We're now through to the end of the movie for this compound track.
+    % Last step: over-write any gap-frames (i.e. transient frames where the
+    % particle disappeared, and then reappeard after). Set these states to
+    % NaN.    
+    state{ti}( isnan(trackmat_xyl(ti).Lamp)  ) = NaN;
+    
 end % --- finished for-loop over ti through all non-ephemeral compound track sets.
 
 end % end of function

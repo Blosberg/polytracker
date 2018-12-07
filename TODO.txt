@@ -1,5 +1,3 @@
 -- double check that R=1/6 works out with the calculations in Vestergaard
 
---  add correction for merger/split events with already-dimerized tracks.
-
 -- fill out the README

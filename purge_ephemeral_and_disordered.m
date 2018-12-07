@@ -1,4 +1,4 @@
-  function [ tracksdat, Nframes ] =  purge_ephemeral ( tracks_input_RAW )
+  function [ tracksdat, Nframes ] =  purge_ephemeral_and_disordered ( tracks_input_RAW )
     
   
   Num_indep_tracks_RAW = length(tracks_input_RAW);
@@ -20,16 +20,20 @@
       end
       
       if ( T_RAW(ti) <= 1 )      
-          is_ephemeral(ti) = true;
+          is_ephemeral_or_disordered(ti) = true;
           % if the track only contains a single frame, then we are not interested in it.
-      else
-          is_ephemeral(ti) = false;
+      elseif ( ~all(diff(  tracks_input_RAW(ti).seqOfEvents(:,1) ) >= 0 ) ) 
+          % if events are out of order, then something strange is happening.
+          is_ephemeral_or_disordered(ti) = true;
+      else 
+          % otherwise, this tracks is worth keeping.
+          is_ephemeral_or_disordered(ti) = false;
       end
   end
   
   % FROM HERE ON WE ONLY WORK WITH THE non-ephemeral input data  
   
-  tracksdat    =  tracks_input_RAW( ~is_ephemeral );
+  tracksdat    =  tracks_input_RAW( ~is_ephemeral_or_disordered );
  
   % (nothing with _RAW should be touched after this point )
   
