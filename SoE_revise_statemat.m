@@ -41,7 +41,7 @@ while ( ~check_states_tenable (SoE_statemat_out)   )
        beta_viable = SoE_asses_beta_viability( SoE, alpha_tracks(m), SoE_statemat_out);
 
        if(beta_viable)
-          alpha_birth = find_birth_event(alpha_tracks(m));
+          alpha_birth = find_birth_event(SoE, alpha_tracks(m));
           adj_mat( alpha_birth, alpha_tracks(m) ) = adj_mat( alpha_birth, alpha_tracks(m) ) +1;
           adj_mat_changed = true;
           break;

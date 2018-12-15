@@ -51,13 +51,13 @@ tvals = dt*linspace(1,Nframes,Nframes);
 
 plot(tvals, density.tracks)
 xlabel("time")
-ylabel("# of distinct tracks")
+ylabel("density of distinct tracks")
 title(  strcat('number of distinct tracks; dataset:', Label) )
 
 figure(3)
 plot(tvals, density.weighted_polymers)
 xlabel("time")
-ylabel("cumulative polymer presence")
+ylabel("cumulative density of polymers")
 title( strcat('Number of proteins total in frame (summed over all states); dataset: ', Label) )
 
 figure(4)
@@ -89,6 +89,7 @@ hist(lumen_list{1}, Nbin)
 xlabel("Intensity")
 ylabel("Freq")
 title( strcat('spectral distribution of monomers; dataset: ', Label) )
+xlim([0, 0.05]);
 
 subplot(2,1,2);
 hist(lumen_list{2}, Nbin)
@@ -112,7 +113,7 @@ title( strcat('position change -scatter') );
 
 subplot(2,1,2);
 hist(dndnp1, 2*Nbin);
-xlim([-0.05, 0.05]);
+%xlim([-0.05, 0.05]);
 xlabel("dx_n * dx_{n+1}");
 ylabel("Freq");
 title( strcat('Two-frame drift correlation: ', Label) );
@@ -122,7 +123,7 @@ hist(D_observations, 2*Nbin);
 xlabel("Observed diffusion constant");
 ylabel("Freq");
 title( strcat('Diffusion constant calculation (like in PNAS 2013): ', Label) );
-xlim([0, 0.30]);
+% xlim([0, 0.30]);
 
 % for the diffusion constant, consider these functions:
 %  http://tinevez.github.io/msdanalyzer/
