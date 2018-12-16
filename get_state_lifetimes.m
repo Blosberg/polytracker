@@ -22,11 +22,15 @@ for ti = 1: Num_comp_tracks
      Events_this_track = tracks_input(ti).seqOfEvents( tracks_input(ti).seqOfEvents(:,4) == sti  ,: );
 
      birth_track_sti_via_states = min( find(~isnan(state_matrices_allti{ti}(sti,:) )) );
-     death_track_sti_via_states = max( find(~isnan(state_matrices_allti{ti}(sti,:) )) ) +1;
+     death_track_sti_via_states = max( find(~isnan(state_matrices_allti{ti}(sti,:) )) );
+     if( death_track_sti_via_states < tracks_input(ti).seqOfEvents( end, 1 );
+         death_track_sti_via_states = death_track_sti_via_states +1;
+     end
      % track "dies" on the first frame where it begins to be NaN permanently.
-     % even if this is a "hypothetical" frame, immediately following the end of the movie.
+     % unless that frame is after the end of this compound track. In that
+     % case, "death" occurs on the final frame of the compound track.
+     % (a cumbersome convention derived from the original tracksFinal data structure).
 
-     % events that list the birth and death of this subtrack
      event_obit = tracks_input(ti).seqOfEvents( tracks_input(ti).seqOfEvents(:,3) == sti  ,: );
      if( size( event_obit,1) ~= 2 )
          disp("not getting birth-death pair")
@@ -48,12 +52,8 @@ for ti = 1: Num_comp_tracks
      %  I've tried my best to ensure that state-changes are ALWAYS noted immediately
      %  after their causes.
 
-     if ( death_track_sti_via_events  == max( tracks_input(ti).seqOfEvents(:,1) ) || death_track_sti_via_events == birth_track_sti_via_events)
-       death_track_sti_via_events = death_track_sti_via_events +1;
-     end
-
      % and sometimes the event is recorded before-frame anyway, for no apparent reason.
-     if( birth_track_sti_via_states ~= birth_track_sti_via_events || abs( death_track_sti_via_states - death_track_sti_via_events)>1 )
+     if( birth_track_sti_via_states ~= birth_track_sti_via_events || abs( death_track_sti_via_states - death_track_sti_via_events) > 0 ) % @@@ may need to change this back to >1
         disp("Inconsistent birth/death time point between state and event calculation.")
         return
      end
@@ -72,14 +72,14 @@ for ti = 1: Num_comp_tracks
                 [ state_this_window, excit_duration ]  = get_state( state_matrices_allti{ti}(sti,:), Events_this_track(index,:), Events_this_track(index+1,:) );
                 %                                                           ^merger event^     ,     ^split event^
                 state_lifetime_list{state_this_window} = [ state_lifetime_list{state_this_window}, dt * excit_duration ] ;
-            end
-        end
-     end
+            end % done cycling through indices with dimerization profile
+        end % done "if" checking for the right shape
+     end % done "if" checking for more than 1 event
 
-  end
+  end % done looping "sti" over Nsubtracks
 
 
-end
+end % done looping ti over Ncompoundtracks
 
 % ===================================================
 % Following documentation taken from the comments of plotComptrack:

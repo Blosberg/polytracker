@@ -37,49 +37,71 @@ for ti = 1:Num_comp_tracks % go through all non-ephemeral independent track sets
 
     state{ti}      = NaN( [ Nsubtracks(ti), Nframes ] );
 
-    for evi = 1:(Nevents_current_ti-1) 
+    evi = 1;
+    prev_states = SoE_state_matrix(1,:);
+
+    while( evi < Nevents_current_ti)
     % loop through the events that occured throughout this track
         current_event_frame = SoE(evi  , 1 );
-        next_event_frame    = SoE(evi+1, 1 );
-        
-        
-        if( (next_event_frame - current_event_frame) >= 1 )
-            % Define state for the current frame up to BUT NOT INCLUDING the 
-            % frame of the next event.
+
+        % if multiple events happen simultaneously, use the states after the last of them.
+        simultaneous_events = find( SoE(:,1)==current_event_frame );
+        evi                 = max(simultaneous_events);
+
+        if( evi  == size(SoE,1)
+            % if the movie is ending here, then assign the states of this one frame:
+            state{ti}( :, current_event_frame ) = ones( Nsubtracks(ti), 1 ).*(prev_states');
+        else
+	    % otherwise Define state for the current frame up to BUT NOT
+	    % INCLUDING the frame of the next event.
+
+            next_event_frame    = SoE(evi+1, 1 );
             state{ti}( :, current_event_frame : next_event_frame -1 ) = ones( Nsubtracks(ti), next_event_frame - current_event_frame ).*(SoE_statemat{ti}(evi,:)');
+
+            % set "prev_states" for next iteration
+            prev_states = SoE_statemat{ti}(evi,:);
         end
-    
-        simultaneous_events =  find( SoE(:,1)==current_event_frame );
-        % over-write states for this FRAME among active tracks (including
-        % the present one).
-        for sevi = 1:length(simultaneous_events)
-            sev = simultaneous_events( sevi ); % sev is the simultaneous event index in the original SoE 
-            state{ti}( SoE(sev, 3), SoE(sev, 1) ) = SoE_get_active_track_state( trackmat_xyl(ti).Lamp( SoE(sev,3), SoE(sev,1) ), SoE_statemat{ti}, sev, SoE(sev,3) );
-        end
-        %                                                                                          ^ active track, ^ time                               
-    end
 
-    % now the last one:
-    evi = Nevents_current_ti;
-    current_event_frame = SoE(Nevents_current_ti, 1 );    
+        evi = evi + 1;
 
-    % set all non-active tracks.
-    state{ti}( :, SoE(evi,1 ) )          = ones( Nsubtracks(ti), 1 ).*(SoE_statemat{ti}(evi,:)');
+    end % terminate while loop over event index "evi"
 
-    simultaneous_events =  find( SoE(:,1)==current_event_frame );
-    % over-write states for this FRAME among active tracks (including
-    % the present one).
-    for sevi = 1:length(simultaneous_events)
-        sev = simultaneous_events( sevi ); % sev is the simultaneous event index in the original SoE
-        state{ti}( SoE(sev, 3), SoE(sev, 1) ) = SoE_get_active_track_state( trackmat_xyl(ti).Lamp( SoE(sev,3), SoE(sev,1) ), SoE_statemat{ti}, sev, SoE(sev,3) );
-    end
-    
     % We're now through to the end of the movie for this compound track.
     % Last step: over-write any gap-frames (i.e. transient frames where the
     % particle disappeared, and then reappeard after). Set these states to
-    % NaN.    
+    % NaN.
     state{ti}( isnan(trackmat_xyl(ti).Lamp)  ) = NaN;
-    
+
 end % --- finished for-loop over ti through all non-ephemeral compound track sets.
+
+% ======== DOUBLE CHECK : ===============
+
+for ti = 1:Num_comp_tracks % go through all non-ephemeral independent track sets.
+  for  sti = 1:Nsubtracks(ti)
+
+     SoE                        = tracks_input(ti).seqOfEvents;
+     event_obit                 = SoE( SoE(:,3) == sti , : );
+     birth_track_sti_via_events = event_obit ( event_obit(:,2)==1, :); birth_track_sti_via_events = birth_track_sti_via_events(1);
+     death_track_sti_via_events = event_obit ( event_obit(:,2)==2, :); death_track_sti_via_events = death_track_sti_via_events(1);
+
+
+     birth_track_sti_via_states = min( find(~isnan(state{ti}(sti,:) )) );
+     death_track_sti_via_states = max( find(~isnan(state{ti}(sti,:) )) );
+     if( death_track_sti_via_states < tracks_input(ti).seqOfEvents( end, 1 );
+         death_track_sti_via_states = death_track_sti_via_states +1;
+     end
+
+     if( birth_track_sti_via_states ~= birth_track_sti_via_events || abs( death_track_sti_via_states - death_track_sti_via_events) > 0 ) % @@@ may need to change this back to >1
+        disp("Inconsistent birth/death time point between state and event calculation.")
+        return
+     end
+
+
+
+  end
+end
+
+% ====== FINISHED DOUBLE CHECK : =======
+
 
 end % end of function
