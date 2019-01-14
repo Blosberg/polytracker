@@ -38,9 +38,9 @@ for ti = 1:Num_comp_tracks % go through all non-ephemeral independent track sets
     state{ti}      = NaN( [ Nsubtracks(ti), Nframes ] );
 
     evi = 1;
-    prev_states = SoE_state_matrix(1,:);
+    prev_states = SoE_statemat(1,:);
 
-    while( evi < Nevents_current_ti)
+    while( evi <= Nevents_current_ti)
     % loop through the events that occured throughout this track
         current_event_frame = SoE(evi  , 1 );
 
@@ -48,18 +48,25 @@ for ti = 1:Num_comp_tracks % go through all non-ephemeral independent track sets
         simultaneous_events = find( SoE(:,1)==current_event_frame );
         evi                 = max(simultaneous_events);
 
-        if( evi  == size(SoE,1)
+        if( evi  == size(SoE,1) )
             % if the movie is ending here, then assign the states of this one frame:
             state{ti}( :, current_event_frame ) = ones( Nsubtracks(ti), 1 ).*(prev_states');
         else
 	    % otherwise Define state for the current frame up to BUT NOT
 	    % INCLUDING the frame of the next event.
 
-            next_event_frame    = SoE(evi+1, 1 );
-            state{ti}( :, current_event_frame : next_event_frame -1 ) = ones( Nsubtracks(ti), next_event_frame - current_event_frame ).*(SoE_statemat{ti}(evi,:)');
+        next_event_frame    = SoE(evi+1, 1 );
+        state{ti}( :, current_event_frame : next_event_frame -1 ) = ones( Nsubtracks(ti), next_event_frame - current_event_frame ).*(SoE_statemat{ti}(evi,:)');
 
-            % set "prev_states" for next iteration
-            prev_states = SoE_statemat{ti}(evi,:);
+        % --- handle case where death is mis-timed:
+        Reacting_states   = unique( SoE( simultaneous_events, 3) );
+        reassign_live     = Reacting_states( find( isnan( state{ti}(Reacting_states, current_event_frame) ) & ~isnan(trackmat_xyl(ti).Lamp(Reacting_states, current_event_frame) )) );
+        if( length(reassign_live) >= 1 )
+           state{ti}( reassign_live, current_event_frame ) = prev_states( reassign_live );
+        end
+
+        % set "prev_states" for next iteration
+        prev_states = SoE_statemat{ti}(evi,:);
         end
 
         evi = evi + 1;
@@ -72,14 +79,12 @@ for ti = 1:Num_comp_tracks % go through all non-ephemeral independent track sets
     % NaN.
     state{ti}( isnan(trackmat_xyl(ti).Lamp)  ) = NaN;
 
-end % --- finished for-loop over ti through all non-ephemeral compound track sets.
 
-% ======== DOUBLE CHECK : ===============
+    % ======== DOUBLE CHECK : ===============
 
-for ti = 1:Num_comp_tracks % go through all non-ephemeral independent track sets.
   for  sti = 1:Nsubtracks(ti)
 
-     SoE                        = tracks_input(ti).seqOfEvents;
+     % disp(ti)
      event_obit                 = SoE( SoE(:,3) == sti , : );
      birth_track_sti_via_events = event_obit ( event_obit(:,2)==1, :); birth_track_sti_via_events = birth_track_sti_via_events(1);
      death_track_sti_via_events = event_obit ( event_obit(:,2)==2, :); death_track_sti_via_events = death_track_sti_via_events(1);
@@ -87,21 +92,26 @@ for ti = 1:Num_comp_tracks % go through all non-ephemeral independent track sets
 
      birth_track_sti_via_states = min( find(~isnan(state{ti}(sti,:) )) );
      death_track_sti_via_states = max( find(~isnan(state{ti}(sti,:) )) );
-     if( death_track_sti_via_states < tracks_input(ti).seqOfEvents( end, 1 );
+     % --- special case: ephemeral sub-tracks (i.e. state is NEVER non-NaN).
+     % --- set birth AND death equal to birth defined from event.
+     if( size( find(~isnan(state{ti}(sti,:) )), 2) ==0 )
+         birth_track_sti_via_states = birth_track_sti_via_events;
+         death_track_sti_via_states = birth_track_sti_via_events;
+     end
+
+     if( death_track_sti_via_states < tracks_input(ti).seqOfEvents( end, 1 ) )
          death_track_sti_via_states = death_track_sti_via_states +1;
      end
 
-     if( birth_track_sti_via_states ~= birth_track_sti_via_events || abs( death_track_sti_via_states - death_track_sti_via_events) > 0 ) % @@@ may need to change this back to >1
+     if( birth_track_sti_via_states ~= birth_track_sti_via_events || abs( death_track_sti_via_states - death_track_sti_via_events) > 1 ) % @@@ may need to change this back to >1
         disp("Inconsistent birth/death time point between state and event calculation.")
         return
      end
-
-
-
   end
-end
 
 % ====== FINISHED DOUBLE CHECK : =======
+
+end % --- finished for-loop over ti through all non-ephemeral compound track sets.
 
 
 end % end of function
