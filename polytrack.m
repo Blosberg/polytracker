@@ -1,7 +1,7 @@
 % take TracksFinal type data structure and dt spacing and some label, and
 % output relevant plots
 
-function [ lifetime_list, density, lumen_list, dout_Plist, Diffconst_vals, D_observations] =  polytrack ( tracks_input_RAW, Label, dt, px_spacing, R, Area, Nbin)
+function [ lifetime_list, density, lumen_list, dpos_Plist, diffconst_vals_Plist, D_observations] =  polytrack ( tracks_input_RAW, Label, dt, px_spacing, R, Area, Nbin)
 
 % ===================================================
 % dat_in = "E:\NikonTIRF\04-10-18\beta1\141\TrackingPackage\tracks\Channel_1_tracking_result"
@@ -102,28 +102,41 @@ title( strcat('spectral distribution of dimers; dataset: ', Label) )
 % same convention as above:
 
 
-[ Diffconst_vals, dout_Plist, dout_all, dndnp1, D_observations ]  = get_diffdat( state_matrices_allti, trackdat_xyl, max_state, dt, Nframes, R  );
+[ diffconst_vals_Plist, dpos_Plist, dpos_all, D_observations ]  = get_diffdat( state_matrices_allti, trackdat_xyl, max_state, dt, Nframes, R  );
 
+% ---------
 figure(7);
 subplot(2,1,1);
-plot(dout_all.x, dout_all.y, '.');
+plot(dpos_all.dx, dpos_all.dy, '.');
 xlabel("dx");
 ylabel("dy");
 title( strcat('position change -scatter') );
 
 subplot(2,1,2);
-hist(dndnp1, 2*Nbin);
+hist( dpos_all.dndnp1, 2*Nbin);
 %xlim([-0.05, 0.05]);
 xlabel("dx_n * dx_{n+1}");
 ylabel("Freq");
 title( strcat('Two-frame drift correlation: ', Label) );
 
+% ---------
+Dval_lims = [0, 0.2];
+
 figure(8);
-hist(D_observations, 2*Nbin);
-xlabel("Observed diffusion constant");
+subplot(2,1,1);
+hist( D_observations.oldmethod_slope, 2*Nbin);
+xlabel("D");
 ylabel("Freq");
-title( strcat('Diffusion constant calculation (like in PNAS 2013): ', Label) );
-% xlim([0, 0.30]);
+title( strcat('Diffusion constant calculation as in PNAS 2013: ', Label) );
+xlim(Dval_lims);
+
+subplot(2,1,2);
+hist( D_observations.newmethod_succdx, 2*Nbin);
+xlabel("D");
+ylabel("Freq");
+title( strcat('Diffusion constant calculation new method: ', Label) );
+xlim(Dval_lims);
+
 
 % for the diffusion constant, consider these functions:
 %  http://tinevez.github.io/msdanalyzer/
