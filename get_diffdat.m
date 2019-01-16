@@ -1,9 +1,10 @@
-function [ diffconst_vals_Plist, dpos_Plist, dpos_all, D_observations ] =  get_diffdat ( state_matrices_allti, trackdat_xyl, max_state, dt, Nframes ,R )
+function [ diffconst_vals_Plist, dpos_Plist, dpos_all, D_obs_all ] =  get_diffdat ( state_matrices_allti, trackdat_xyl, max_state, dt, Nframes ,R )
 % diffconst_vals is a data structure (list) containing average diffusion parameters for each state
 % dpos_Plist carries the data cataloguing the actual change in position of
 % particles.
-% D_observations (for the histogram) is an array of diffusion constants
-% calculated for each track, regardless of state or duration.
+% D_obs_all (for the histogram) is an array of diffusion constants
+% calculated for each track, regardless of state or duration. This is done
+% twice (using the old, flawed, method from the PNAS 2013 paper, and the new, correct, way.)
 
 % ----- initialize -----------------
 
@@ -17,8 +18,8 @@ dpos_all.dndnp1       = [];
 dpos_all.dx           = [];
 dpos_all.dy           = [];
 
-D_observations.oldmethod_slope        = [];
-D_observations.newmethod_succdx       = [];
+D_obs_all.oldmethod_slope        = [];
+D_obs_all.newmethod_succdx       = [];
 
 
 %% First collect diffconst_vals for each polymer state
@@ -101,7 +102,8 @@ for ti = 1:Num_comp_tracks
 
    dpos_all.dndnp1 = [ dpos_all.dndnp1, temp ];
 
-   % ----------- Now collect histogrammed D_observations data -----------
+   % ----------- Collect observations of D for all polymer types (D_obs_all)  -----------
+   % (will be used for histogram)
    % --- First the new method (based on successive dx values:
 
    clear MSD;
@@ -115,7 +117,7 @@ for ti = 1:Num_comp_tracks
       end
    end
 
-   D_observations.newmethod_succdx = [ D_observations.newmethod_succdx , (MSD(~isnan(MSD))/(4*dt)) ];
+   D_obs_all.newmethod_succdx = [ D_obs_all.newmethod_succdx , (MSD(~isnan(MSD))/(4*dt)) ];
    % this will be our array of "Diffusion constants" for each track observed.
    % irrespective of track length or state.
 
@@ -150,12 +152,12 @@ for ti = 1:Num_comp_tracks
             % C = polyfit(tvals(2:end), MSD(2:end), 1);
             % the slope obtained from this fit is then = 4D
             % x = A\B solves the system of linear equations A*x = B.
-            
+
             % original paper did not mention any y-intercept.
             slope = tvals(:)\MSD(:);
             % plot (tvals,  xvals.^2 + xvals.^2 , tvals, C(1)*tvals + C(2), tvals, tvals*slope  );
 
-            D_observations.oldmethod_slope = [ D_observations.oldmethod_slope, slope/4 ];
+            D_obs_all.oldmethod_slope = [ D_obs_all.oldmethod_slope, slope/4 ];
 
         end
     end

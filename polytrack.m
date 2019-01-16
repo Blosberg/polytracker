@@ -89,13 +89,15 @@ hist(lumen_list{1}, Nbin)
 xlabel("Intensity")
 ylabel("Freq")
 title( strcat('spectral distribution of monomers; dataset: ', Label) )
-xlim([0, 0.05]);
+% xlim([0, 0.01]);
 
 subplot(2,1,2);
 hist(lumen_list{2}, Nbin)
 xlabel("Intensity")
 ylabel("Freq")
 title( strcat('spectral distribution of dimers; dataset: ', Label) )
+% xlim([0, 0.01]);
+
 
 % ===================================================
 % get diffusion constants:
