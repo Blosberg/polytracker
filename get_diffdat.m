@@ -142,7 +142,7 @@ for ti = 1:Num_comp_tracks
             xvals        = trackdat_xyl(ti).xpos(sti, valid_frames ) - trackdat_xyl(ti).xpos(sti,  birth_track_sti );
             yvals        = trackdat_xyl(ti).ypos(sti, valid_frames ) - trackdat_xyl(ti).ypos(sti,  birth_track_sti );
 
-            MSD = ( xvals.^2 + xvals.^2 );
+            MSD = ( xvals.^2 + yvals.^2 );
             if ( MSD(1)~= 0 || min(MSD)<0 )
                disp("ERROR: exception in linear regression section.");
             end

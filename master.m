@@ -33,7 +33,7 @@ Nbin       = 300;        %--- Resolution (number of bins) for your histograms.
 % ==================================================================
 % Now run the script:
 
-[ lifetime_list, density, lumen_list, dout_Plist, Diffconst_vals, D_observations] = polytrack( tracksFinal, Label, dt, px_spacing, R, Area, Nbin);
+[ lifetime_list, density, lumen_list, dpos_Plist, Diffconst_vals_Plist, D_observations] = polytrack( tracksFinal, Label, dt, px_spacing, R, Area, Nbin);
 
 % -----------------------------
 % and plot the results:
