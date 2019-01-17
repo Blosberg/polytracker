@@ -26,7 +26,6 @@ if( state_vector_ti_sti( Event_i(1) ) -  state_vector_ti_sti( Event_i(1)-1 ) <=0
 end
 
 state_output          = S;
-% @@@ TODO: double-check +1 convention here:
-window_duration = Event_f(1) - Event_i(1);
+window_duration = Event_f(1) - Event_i(1) + 1;
 
 end

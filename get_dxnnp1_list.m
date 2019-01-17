@@ -1,5 +1,5 @@
 function [ dnnp1_list ] =  get_dxnnp1_list (state_matrices_allti, trackdat_xyl, Nframes, S)
-% collect change in position between two adjacent frames
+% collect autocorrelation in positional change between two adjacent frames
 
 Num_comp_tracks     = length( trackdat_xyl );
 
@@ -33,7 +33,6 @@ for ti = 1:Num_comp_tracks
 
   dxnnp1_list = [ dxnnp1_list , dxnnp1_vec ];
   dynnp1_list = [ dynnp1_list , dynnp1_vec ];
-
 
 end
 

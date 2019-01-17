@@ -1,6 +1,8 @@
-  function [ tracksdat, Nframes ] =  purge_ephemeral_and_disordered ( tracks_input_RAW )
-    
-  
+function [ tracksdat, Nframes ] =  purge_ephemeral_and_disordered ( tracks_input_RAW )
+% Remove compound tracks that only last a single frame (and are 
+% uninteresting), or which contain events that are not sequential (and are
+% therefore suspicious).
+
   Num_indep_tracks_RAW = length(tracks_input_RAW);
   Nframes = 1;
   

@@ -1,12 +1,18 @@
-function [ state_lifetime_list ] =  get_state_lifetimes ( tracks_input, state_matrices_allti, max_state, dt, Nframes )
+function [ state_lifetime_Plist ] =  get_state_lifetimes ( tracks_input, state_matrices_allti, max_state, dt, Nframes )
 % Calculations the number of intervening frames within dimerization events.
+% This function grabs lifetimes of each polymer state (i.e. [1] monomer,
+% [2] dimer, etc. and outputs a list for each case. (higher-lever functions
+% can then concatenate this to a single list irrespective of polymer
+% states.
 
+
+% --- initialize Plist
 Num_comp_tracks     = length( tracks_input );
 for s= 1:max_state
-    state_lifetime_list{s} = [];
+    state_lifetime_Plist{s} = [];
 end
 
-% go through all non-ephemeral compound track sets.
+% loop through all compound track sets.
 for ti = 1: Num_comp_tracks
 
   Nsubtracks(ti) =  size( tracks_input(ti).tracksCoordAmpCG, 1);
@@ -16,13 +22,11 @@ for ti = 1: Num_comp_tracks
     return
   end
 
+  % now loop through sub-tracks within this compound track
   for  sti = 1:Nsubtracks(ti)
 
      % collect split and merger events in which this track was the enduring party
      Events_this_track = tracks_input(ti).seqOfEvents( tracks_input(ti).seqOfEvents(:,4) == sti  ,: );
-     % track "dies" on the first frame where it begins to be NaN
-     % permanently, *OR* on its last non-NaN frame.
-     % (a cumbersome and inconsistent convention derived from the original tracksFinal data structure).
 
      event_obit = tracks_input(ti).seqOfEvents( tracks_input(ti).seqOfEvents(:,3) == sti  ,: );
      if( size( event_obit,1) ~= 2 )
@@ -46,22 +50,15 @@ for ti = 1: Num_comp_tracks
          death_track_sti_via_states = death_track_sti_via_states +1;
      end
 
+     % N.B.: Whether a track "dies" on the first frame where it begins
+     % to be NaN permanently, *OR* on its last non-NaN frame is
+     % inconsistent.
+     % This cumbersome convention derives from inconsistency in the 
+     % original tracksFinal data structure 
+     % (which is why sanity checks allow for diff <= 1 ).
 
-     % terminal event? if so, then it "dies" on what _would have_ been the next frame
-     % original developpers were EXTREMELY sloppy on this point
-     % By their notation, the frame # from seqOfEvents points to
-     % ---- the last frame before event, if either (A) the event was terminal to the compound track
-     %                                          OR (B) Was the same frame as the birth.
-     %                                          OR (C) some other as-yet undetermined condition (!!)
-     %  if none of these things were true, then USUALLY, the event
-     % refers to first post-event frame.
-     % -- A convoluted and imprecise convention.
-     %  I've tried my best to ensure that state-changes are ALWAYS noted immediately
-     %  after their causes.
-
-     % and sometimes the event is recorded before-frame anyway, for no apparent reason.
-     if( birth_track_sti_via_states ~= birth_track_sti_via_events || abs( death_track_sti_via_states - death_track_sti_via_events) > 1 ) % @@@ may need to change this back to >1
-        disp("Inconsistent birth/death time point between state and event calculation.")
+     if( birth_track_sti_via_states ~= birth_track_sti_via_events || abs( death_track_sti_via_states - death_track_sti_via_events) > 1 ) 
+        disp("FATAL ERROR: Inconsistent birth/death time point between state and event calculation.")
         return
      end
 
@@ -78,7 +75,7 @@ for ti = 1: Num_comp_tracks
                 index = indices_right_shape(j);
                 [ state_this_window, excit_duration ]  = get_state( state_matrices_allti{ti}(sti,:), Events_this_track(index,:), Events_this_track(index+1,:) );
                 %                                                           ^merger event^     ,     ^split event^
-                state_lifetime_list{state_this_window} = [ state_lifetime_list{state_this_window}, dt * excit_duration ] ;
+                state_lifetime_Plist{state_this_window} = [ state_lifetime_Plist{state_this_window}, dt * excit_duration ] ;
             end % done cycling through indices with dimerization profile
         end % done "if" checking for the right shape
      end % done "if" checking for more than 1 event
@@ -87,29 +84,3 @@ for ti = 1: Num_comp_tracks
 
 
 end % done looping ti over Ncompoundtracks
-
-% ===================================================
-% Following documentation taken from the comments of plotComptrack:
-% Within each Tracks(i) data, there will be the following elements:
-
-%           .tracksCoordAmpCG: The positions and amplitudes of the tracked
-%                              features, after gap closing. Number of rows
-%                              = number of track segments in compound
-%                              track. Number of columns = 8 * number of
-%                              frames the compound track spans. Each row
-%                              consists of
-%                              [x1 y1 z1 a1 dx1 dy1 dz1 da1 x2 y2 z2 a2 dx2 dy2 dz2 da2 ...]
-%                              NaN indicates frames where track segments do
-%                              not exist.
-%           .seqOfEvents     : Matrix with number of rows equal to number
-%                              of events happening in a track and 4
-%                              columns:
-%                              1st: Frame where event happens;
-%                              2nd: 1 - start of track, 2 - end of track;
-%                              3rd: Index of track segment that ends or starts;
-%                              4th: NaN - start is a birth and end is a death,
-%                                   number - start is due to a split, end
-%                                   is due to a merge, number is the index
-%                                   of track segment for the merge/split.
-
-

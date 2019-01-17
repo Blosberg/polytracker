@@ -42,7 +42,7 @@ for S= 1:max_state
     SNR = sqrt( (diffconst_vals_Plist{S}.D + (dxndxnp1_ave/dt))* dt / diffconst_vals_Plist{S}.sigma2 );
 
     if( SNR < 1  )
-        disp( strcat("WARNING: SNR =", num2str( SNR ), " for state ",num2str( S )))
+        disp( strcat("SNR =", num2str( SNR ), " for state ",num2str( S )))
         % disp( "This implies failure to meet criteria of free-diffusion on a non-fluctuating membrane" )
     end
 
@@ -137,7 +137,7 @@ for ti = 1:Num_comp_tracks
 
             % collect time points after start of track for which
             % luminescance was non-NaN
-            valid_frames =  find( ~isnan(trackdat_xyl(ti).Lamp(sti, :) ));
+            valid_frames = find( ~isnan(trackdat_xyl(ti).Lamp(sti, :) ));
             tvals        = dt* ( valid_frames - birth_track_sti );
             xvals        = trackdat_xyl(ti).xpos(sti, valid_frames ) - trackdat_xyl(ti).xpos(sti,  birth_track_sti );
             yvals        = trackdat_xyl(ti).ypos(sti, valid_frames ) - trackdat_xyl(ti).ypos(sti,  birth_track_sti );
@@ -151,9 +151,9 @@ for ti = 1:Num_comp_tracks
             % fit MSD to t values with polynomial of degree n=1
             % C = polyfit(tvals(2:end), MSD(2:end), 1);
             % the slope obtained from this fit is then = 4D
-            % x = A\B solves the system of linear equations A*x = B.
+            % However, original paper did not mention any y-intercept.
 
-            % original paper did not mention any y-intercept.
+            % x = A\B solves the system of linear equations A*x = B.
             slope = tvals(:)\MSD(:);
             % plot (tvals,  xvals.^2 + xvals.^2 , tvals, C(1)*tvals + C(2), tvals, tvals*slope  );
 

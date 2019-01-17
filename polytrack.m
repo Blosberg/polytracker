@@ -1,28 +1,22 @@
+function [ lifetime_list, Diffconst_vals_Plist, dpos_Plist, lumen_Plist, density, D_observations] =  polytrack ( tracks_input_RAW, Label, dt, px_spacing, R, Area, Nbin)
 % take TracksFinal type data structure and dt spacing and some label, and
-% output relevant plots
-
-function [ lifetime_list, density, lumen_list, dpos_Plist, diffconst_vals_Plist, D_observations] =  polytrack ( tracks_input_RAW, Label, dt, px_spacing, R, Area, Nbin)
-
-% ===================================================
-% dat_in = "E:\NikonTIRF\04-10-18\beta1\141\TrackingPackage\tracks\Channel_1_tracking_result"
-% tracksoftware = "C:\u-track\software\plotCompTrack.m"
-% load(dat_in)
-% clear *
-% load("workspace_just_tracksFinal.mat")
-% tracks_input_RAW = tracksFinal;
-% dt     = 0.04;
+% perform relevant analysis with a few output plots
 
 %%  ===================================================
+% ---  Filter out ephemeral tracks:
 
-
-% --- FILTER OUT EPHEMERAL TRACKS:
 [ tracks_input, Nframes ]  = purge_ephemeral_and_disordered( tracks_input_RAW );
-
+% no reference to tracks_input_RAW should ever be made after this point. 
+% We now use only tracks_input, where problematic tracks have been removed.
 
 %%  ===================================================
 % --- get xy-, dxdy-, and lumen data for each subtrack
 
 trackdat_xyl =  build_xyl_trackdat ( tracks_input, px_spacing, Nframes );
+
+% output arrays in trackdat_xyl include:  .xpos[ition], ypos[ition], 
+% and the change thereof( .dx, .dy)
+% and luminescance amplitude (.Lamp)
 
 %%  ===================================================
 % --- Assign polymer state for each time point along each track:
@@ -70,10 +64,10 @@ title( strcat('Fraction of monomers/tracks; dataset: ', Label) )
 % --- Tabulate luminescance by state
 % same convention as above:
 
-lumen_list = get_lumen_list ( tracks_input, state_matrices_allti, trackdat_xyl, max_state, Nframes );
+lumen_Plist = get_lumen_list ( tracks_input, state_matrices_allti, trackdat_xyl, max_state, Nframes );
 
 for s = 1:max_state
-   mean_lumen(s) = mean( lumen_list{s} );
+   mean_lumen(s) = mean( lumen_Plist{s} );
 end
 
 figure(5)
@@ -85,14 +79,14 @@ title( strcat('Mean illumination by state (1=monomer, 2=dimer, etc.); dataset: '
 
 figure(6)
 subplot(2,1,1);
-hist(lumen_list{1}, Nbin)
+hist(lumen_Plist{1}, Nbin)
 xlabel("Intensity")
 ylabel("Freq")
 title( strcat('spectral distribution of monomers; dataset: ', Label) )
 % xlim([0, 0.01]);
 
 subplot(2,1,2);
-hist(lumen_list{2}, Nbin)
+hist(lumen_Plist{2}, Nbin)
 xlabel("Intensity")
 ylabel("Freq")
 title( strcat('spectral distribution of dimers; dataset: ', Label) )
@@ -104,7 +98,7 @@ title( strcat('spectral distribution of dimers; dataset: ', Label) )
 % same convention as above:
 
 
-[ diffconst_vals_Plist, dpos_Plist, dpos_all, D_observations ]  = get_diffdat( state_matrices_allti, trackdat_xyl, max_state, dt, Nframes, R  );
+[ Diffconst_vals_Plist, dpos_Plist, dpos_all, D_observations ]  = get_diffdat( state_matrices_allti, trackdat_xyl, max_state, dt, Nframes, R  );
 
 % ---------
 figure(7);
@@ -130,20 +124,19 @@ hist( D_observations.oldmethod_slope, 2*Nbin);
 xlabel("D");
 ylabel("Freq");
 title( strcat('Diffusion constant calculation as in PNAS 2013: ', Label) );
-xlim(Dval_lims);
+% xlim(Dval_lims);
 
 subplot(2,1,2);
 hist( D_observations.newmethod_succdx, 2*Nbin);
 xlabel("D");
 ylabel("Freq");
 title( strcat('Diffusion constant calculation new method: ', Label) );
-xlim(Dval_lims);
-
+% xlim(Dval_lims);
 
 % for the diffusion constant, consider these functions:
-%  http://tinevez.github.io/msdanalyzer/
+% http://tinevez.github.io/msdanalyzer/
 %
-%  https://de.mathworks.com/matlabcentral/fileexchange/34040-simple-tracker
+% https://de.mathworks.com/matlabcentral/fileexchange/34040-simple-tracker
 %
 
 end

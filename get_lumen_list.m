@@ -3,12 +3,12 @@ function [ lumen_list ] =  get_lumen_list ( tracks_input, state_matrices_allti, 
 
 Num_comp_tracks     = length( tracks_input );
 
-% initialize the list
+% Initialize the list
 for S= 1:max_state
     lumen_list{S} = [];
 end
-% ---------------------------------
 
+% ---  cycle over frame # ------------------
 for ti = 1:Num_comp_tracks
 
   max_state_for_this_comptrack = max(max(state_matrices_allti{ti}));

@@ -1,4 +1,6 @@
 function [ trackdat_xyl ] =  build_xyl_trackdat ( tracks_input, px_spacing, Nframes )
+% Create a data structure with a more streamlined reference for the
+% positions, luminations, and changes in position of the various tracks.
 
 Num_comp_tracks = length( tracks_input);
 
@@ -32,11 +34,12 @@ for ti = 1:Num_comp_tracks
        trackdat_xyl(ti).xpos(sti,:) = [ repmat(NaN,[1 , (comptrack_birth-1)]), xdat_compwindow, repmat(NaN,[1 , comptrack_death_lag]) ];
        trackdat_xyl(ti).ypos(sti,:) = [ repmat(NaN,[1 , (comptrack_birth-1)]), ydat_compwindow, repmat(NaN,[1 , comptrack_death_lag]) ];
        trackdat_xyl(ti).Lamp(sti,:) = [ repmat(NaN,[1 , (comptrack_birth-1)]), Adat_compwindow, repmat(NaN,[1 , comptrack_death_lag]) ];
-
+       
     end % terminate forloop through subtracks
 
+    % Sanity check: is this track data the right dimensions:
     if(  ~all(  size( trackdat_xyl(ti).xpos ) == [ Nsubtracks(ti), Nframes] ) ||  ~all(  size( trackdat_xyl(ti).ypos ) == [ Nsubtracks(ti), Nframes] ) )
-       disp("unexpected dimension in trackdat_xyl.")
+       disp("FATAL ERROR: unexpected dimension in trackdat_xyl.")
        return
     end
 
@@ -44,7 +47,7 @@ for ti = 1:Num_comp_tracks
     trackdat_xyl(ti).dy  = diff ( trackdat_xyl(ti).ypos, 1, 2 );
 
     if(  ~all (  size( trackdat_xyl(ti).Lamp ) ==  [ Nsubtracks(ti), Nframes] ) )
-        disp("unexpected dimension in trackdat_xyl.Lamp.")
+        disp("FATAL ERROR: unexpected dimension in trackdat_xyl.Lamp.")
         return
     end
 

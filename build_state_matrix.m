@@ -5,6 +5,10 @@ function [ state, max_state ] =  build_state_matrix ( tracks_input, trackmat_xyl
 max_state = 1;
 Num_comp_tracks = length( tracks_input);
 
+
+% Define the "adjustment matrix" -- i.e. the matrix that reassigns monomers
+% off of their default track, and onto another branch whenever the
+% corresponding element is non-zero.
 for ti = 1:Num_comp_tracks % go through all non-ephemeral independent track sets.
 
     Nevents_current_ti   = size(tracks_input(ti).seqOfEvents,      1);
@@ -22,11 +26,11 @@ for ti = 1:Num_comp_tracks % go through all non-ephemeral independent track sets
     end
 
     max_state = max( max_state, max( max( SoE_statemat{ti})) );
-
 end
 
 % =============================================================================
 % --- POPULATE THE PER-FRAME STATE MATRIX ----
+% --- a number for each track for each frame giving its state.
 
 for ti = 1:Num_comp_tracks % go through all non-ephemeral independent track sets.
 
@@ -103,9 +107,8 @@ for ti = 1:Num_comp_tracks % go through all non-ephemeral independent track sets
          death_track_sti_via_states = death_track_sti_via_states +1;
      end
 
-     if( birth_track_sti_via_states ~= birth_track_sti_via_events || abs( death_track_sti_via_states - death_track_sti_via_events) > 1 ) % @@@ may need to change this back to >1
-        disp("Inconsistent birth/death time point between state and event calculation.")
-        return
+     if( birth_track_sti_via_states ~= birth_track_sti_via_events || abs( death_track_sti_via_states - death_track_sti_via_events) > 1 )
+        disp("WARNING: Inconsistent birth/death time point between state and event calculation.")
      end
   end
 
