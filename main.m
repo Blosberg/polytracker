@@ -35,7 +35,7 @@ Nbin       = 300;     %--- Resolution (number of bins) for your histograms.
 [ lifetime_Plist, Diffconst_vals_Plist, dpos_Plist, lumen_Plist, density, D_observations] = polytrack( tracksFinal, Label, dt, px_spacing, R, Area, Nbin);
 
 % -----------------------------
-% and plot the results:
+% collect all dimerization lifetimes, regardless of state:
 
 max_state = length(lifetime_Plist);
 all_oligermizations = [];
@@ -68,7 +68,7 @@ comptrack_lengths = comptrack_lengths';
 
 
 % ===================================================
-% Following documentation taken from the comments of plotComptrack:
+% The following documentation kept for reference; taken from the comments of plotComptrack:
 % Within each Tracks(i) data, there will be the following elements:
 %           .tracksCoordAmpCG: The positions and amplitudes of the tracked
 %                              features, after gap closing. Number of rows
