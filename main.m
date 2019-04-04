@@ -1,8 +1,8 @@
 % polytracker Copyright © 2017 Bren Osberg <brendan.osberg@mdc-berlin.de>
 %
 % A software package for processing data from TIRF fluorescance
-% videos. Running this program requires that the relevant parameters be set 
-% as needed below, and that the data structure "TracksFinal" is already 
+% videos. Running this program requires that the relevant parameters be set
+% as needed below, and that the data structure "TracksFinal" is already
 % loaded into the workspace (see documentation at the bottom of this file).
 
 
@@ -30,42 +30,14 @@ Label      = "ds524"; %--- Some descriptive name for your dataset.
 Nbin       = 300;     %--- Resolution (number of bins) for your histograms.
 
 % ==================================================================
-% Now run the script:
-
-[ lifetime_Plist, Diffconst_vals_Plist, dpos_Plist, lumen_Plist, density, D_observations] = polytrack( tracksFinal, Label, dt, px_spacing, R, Area, Nbin);
-
-% -----------------------------
-% collect all dimerization lifetimes, regardless of state:
-
-max_state = length(lifetime_Plist);
-all_oligermizations = [];
-for s = 2:max_state
-   mean_lifetime = mean( lifetime_Plist{s}) ;
-   all_oligermizations = [ all_oligermizations, lifetime_Plist{s}];
-end
-
-figure(1);
-hist(all_oligermizations, 50);
-xlabel(" lifetime [s]")
-ylabel("frequency")
-title( strcat('Merger liftime distribution; dataset: ', Label) )
 
 
-% ---- NOW GET THE COMPOUND TRACK LENGTHS:
+% ---- GET THE COMPOUND TRACK LENGTHS:
+comptrack_lengths = get_comptrack_lengths( tracksFinal );
 
-Ncomptracks  = size(tracksFinal);
 
-for ti = 1:Ncomptracks
-   Nentries =  size(tracksFinal(ti).tracksCoordAmpCG,2);
-   if ( mod (Nentries,8) ~= 0)
-       print("ERROR: number of frames isn't a multiple of 8, somethings wrong here!!")
-   end
-
-   comptrack_lengths(ti) = size(tracksFinal(ti).tracksCoordAmpCG,2)/8;
-end
-
-comptrack_lengths = comptrack_lengths';
-
+% Now run the major part of the script:
+polydat = polytrack( tracksFinal, Label, dt, px_spacing, R, Area, Nbin);
 
 % ===================================================
 % The following documentation kept for reference; taken from the comments of plotComptrack:

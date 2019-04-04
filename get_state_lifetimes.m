@@ -4,6 +4,8 @@ function [ state_lifetime_Plist ] =  get_state_lifetimes ( tracks_input, state_m
 % [2] dimer, etc. and outputs a list for each case. (higher-lever functions
 % can then concatenate this to a single list irrespective of polymer
 % states.
+% Lifetime_list{1} is the list of lifetime observations for polymers in the 1 state
+% Lifetime_list{2} "" "" in the 2 state, etc.
 
 
 % --- initialize Plist

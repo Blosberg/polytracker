@@ -1,12 +1,12 @@
-function [ lifetime_list, Diffconst_vals_Plist, dpos_Plist, lumen_Plist, density, D_observations] =  polytrack ( tracks_input_RAW, Label, dt, px_spacing, R, Area, Nbin)
+function polydat =  polytrack ( tracks_input_RAW, Label, dt, px_spacing, R, Area, Nbin)
 % take TracksFinal type data structure and dt spacing and some label, and
 % perform relevant analysis with a few output plots
 
 %%  ===================================================
 % ---  Filter out ephemeral tracks:
-
 [ tracks_input, Nframes ]  = purge_ephemeral_and_disordered( tracks_input_RAW );
-% no reference to tracks_input_RAW should ever be made after this point. 
+
+% no reference to tracks_input_RAW should ever be made after this point.
 % We now use only tracks_input, where problematic tracks have been removed.
 
 %%  ===================================================
@@ -14,7 +14,7 @@ function [ lifetime_list, Diffconst_vals_Plist, dpos_Plist, lumen_Plist, density
 
 trackdat_xyl =  build_xyl_trackdat ( tracks_input, px_spacing, Nframes );
 
-% output arrays in trackdat_xyl include:  .xpos[ition], ypos[ition], 
+% output arrays in trackdat_xyl include:  .xpos[ition], ypos[ition],
 % and the change thereof( .dx, .dy)
 % and luminescance amplitude (.Lamp)
 
@@ -26,71 +26,91 @@ trackdat_xyl =  build_xyl_trackdat ( tracks_input, px_spacing, Nframes );
 
 %%  ===================================================
 % get list of arrays of lifetimes observed for each polymer state  --> MS
-% Lifetime_list{1} is the list of lifetime observations for polymers in the 1 state
-% Lifetime_list{2} "" "" in the 2 state, etc.
 
-lifetime_list = get_state_lifetimes ( tracks_input, state_matrices_allti, max_state, dt, Nframes );
 
+% Previous code instances were interested in the lifetime of various Polymer states.
+% this is left here in case we want this functionality again later
+% polydat.lifetime_list = get_state_lifetimes ( tracks_input, state_matrices_allti, max_state, dt, Nframes );
+
+[ polydat.bond_time.on, polydat.bond_time.off ] = get_bond_times (  tracks_input, state_matrices_allti, max_state, dt, Nframes  );
+
+
+figure(1);
+subplot(2,1,1);
+hist( polydat.bond_time.on, 50);
+xlabel(" On [s]")
+ylabel("frequency")
+title( strcat('On/Off window liftime distribution; dataset: ', Label) )
+
+
+subplot(2,1,2);
+hist( polydat.bond_time.off, 50);
+xlabel(" Off [s]")
+ylabel("frequency")
 
 %%  ===================================================
 % Collect density
-[ density.monomers, density.tracks, density.weighted_polymers ] = get_particle_density( state_matrices_allti, Nframes );
+polydat.density = get_particle_density( state_matrices_allti, max_state, Nframes, Area );
 
-density.monomers = (1/Area)* density.monomers;
-density.tracks   = (1/Area)* density.tracks;
-density.weighted_polymers = (1/Area)* density.weighted_polymers;
 
 figure(2)
 tvals = dt*linspace(1,Nframes,Nframes);
 
-plot(tvals, density.tracks)
+plot(tvals, sum(polydat.density,1) )
 xlabel("time")
 ylabel("density of distinct tracks")
 title(  strcat('number of distinct tracks; dataset:', Label) )
 
 figure(3)
-plot(tvals, density.weighted_polymers)
+plot(tvals, sum( (1:max_state)'.* polydat.density, 1) )
 xlabel("time")
 ylabel("cumulative density of polymers")
 title( strcat('Number of proteins total in frame (summed over all states); dataset: ', Label) )
 
 figure(4)
-plot(tvals, density.monomers./density.tracks)
+plot(tvals, polydat.density(1,:) ./ sum(polydat.density,1) )
 xlabel("time")
 ylabel("Fraction of monomers")
 title( strcat('Fraction of monomers/tracks; dataset: ', Label) )
+
 
 % ===================================================
 % --- Tabulate luminescance by state
 % same convention as above:
 
-lumen_Plist = get_lumen_list ( tracks_input, state_matrices_allti, trackdat_xyl, max_state, Nframes );
+
+polydat.lumen_Plist = get_lumen_list ( tracks_input, state_matrices_allti, trackdat_xyl, max_state, Nframes );
 
 for s = 1:max_state
-   mean_lumen(s) = mean( lumen_Plist{s} );
+   mean_lumen(s) = mean( polydat.lumen_Plist{s} );
+   lumen_stdv(s) = std(  polydat.lumen_Plist{s} );
 end
 
 figure(5)
-plot( mean_lumen )
+plot( mean_lumen - lumen_stdv,"--r"); hold on;
+plot( mean_lumen + lumen_stdv,"--r"); hold on;
+plot( mean_lumen,'r', 'LineWidth', 4  );
+axis([0 max_state min(mean_lumen - lumen_stdv)  max(mean_lumen + lumen_stdv) ])
 xlabel("state")
-ylabel("mean illumination intensity")
+ylabel("mean illumination intensity +/- std. dev")
 title( strcat('Mean illumination by state (1=monomer, 2=dimer, etc.); dataset: ', Label) )
 
 
 figure(6)
 subplot(2,1,1);
-hist(lumen_Plist{1}, Nbin)
+hist( polydat.lumen_Plist{1}, Nbin)
 xlabel("Intensity")
 ylabel("Freq")
 title( strcat('spectral distribution of monomers; dataset: ', Label) )
 % xlim([0, 0.01]);
 
 subplot(2,1,2);
-hist(lumen_Plist{2}, Nbin)
+hist( polydat.lumen_Plist{2}, Nbin)
 xlabel("Intensity")
 ylabel("Freq")
 title( strcat('spectral distribution of dimers; dataset: ', Label) )
 % xlim([0, 0.01]);
+
 
 
 % ===================================================
@@ -98,7 +118,7 @@ title( strcat('spectral distribution of dimers; dataset: ', Label) )
 % same convention as above:
 
 
-[ Diffconst_vals_Plist, dpos_Plist, dpos_all, D_observations ]  = get_diffdat( state_matrices_allti, trackdat_xyl, max_state, dt, Nframes, R  );
+[ polydat.diffus.Dvals_Plist, polydat.diffus.dpos_Plist, dpos_all, polydat.diffus.D_observations ]  = get_diffdat( state_matrices_allti, trackdat_xyl, max_state, dt, Nframes, R  );
 
 % ---------
 figure(7);
@@ -120,14 +140,14 @@ Dval_lims = [0, 0.2];
 
 figure(8);
 subplot(2,1,1);
-hist( D_observations.oldmethod_slope, 2*Nbin);
+hist( polydat.diffus.D_observations.oldmethod_slope, 2*Nbin);
 xlabel("D");
 ylabel("Freq");
 title( strcat('Diffusion constant calculation as in PNAS 2013: ', Label) );
 % xlim(Dval_lims);
 
 subplot(2,1,2);
-hist( D_observations.newmethod_succdx, 2*Nbin);
+hist( polydat.diffus.D_observations.newmethod_succdx, 2*Nbin);
 xlabel("D");
 ylabel("Freq");
 title( strcat('Diffusion constant calculation new method: ', Label) );
