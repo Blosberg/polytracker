@@ -72,12 +72,12 @@ for tr = 1: Ncomptracks
 
    % an "on" window is when this track endures a merge followed directly by
    % a split ( birth - death = -1 )
-   bond_times_on  = [bond_times_on  , get_onoff_windows(Events_this_track_enduring, -1, dt) ];
+   bond_times_on  = [bond_times_on  , get_onoff_windows(Events_this_track_enduring, -1, dt, subtr) ];
 
    % An "off" window is when this track is one of the tracks involved in a
    % split, and immediately thereafter is one of the tracks involved in a
    % merge: (death - birth = 1 )
-   bond_times_off = [bond_times_off , get_onoff_windows(Events_this_track_involved, 1,  dt) ];
+   bond_times_off = [bond_times_off , get_onoff_windows(Events_this_track_involved, 1,  dt, subtr) ];
 
 
 
