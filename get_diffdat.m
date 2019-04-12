@@ -26,6 +26,9 @@ D_obs_all.newmethod_succdx       = [];
 
 Num_comp_tracks = length( trackdat_xyl);
 
+disp( "The following displays diffusion Signal/noise values (see Vestergaard et al, Phys. Rev. E. 89, (2014))")
+disp( " for polymer states: (1) Monomer, (2) dimer, etc. ")
+
 for S= 1:max_state
 
     [ dpos_Plist{S}.dx, dpos_Plist{S}.dy ] = get_dxy_list(  state_matrices_allti, trackdat_xyl, Nframes, S);
