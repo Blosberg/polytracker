@@ -3,7 +3,7 @@ This matlab package builds upon fluorescence-tracking data from other packages s
 
 Users should open the file "main.m" and edit the variables defined there, as needed, to correspond to their input data. (e.g. time resolution (dt), field-of-view area, etc.), and add some descriptive "Label" to assign to your data in the resulting plots.
 
-A data structure like "TracksFinal" should also be loaded into the workspace (this is often the output from the u-track package. From that point, the main script can simply be run (one might hit "ctrl+Enter" from the matlab IDE, and the package will run; various observables are plotted automatically.)
+A data structure like "TracksFinal" should also be loaded into the workspace (this is often the output from the u-track package). From that point, the main script can simply be run (one might hit "ctrl+Enter" from the matlab IDE, and the package will run; various observables are plotted automatically.)
 
 One major novelty of the package is the attempt to infer the state of tracks based on their merger/splitting events. As such, many observables are output in lists correponding to their oligomerization state: [1] monomers, [2] dimers, [3] trimers, etc. 
 
