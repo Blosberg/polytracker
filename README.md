@@ -6,7 +6,7 @@ This matlab package contains the necessary code for the analysis performed in [t
 <img src="https://media.springernature.com/lw685/springer-static/image/art%3A10.1038%2Fs41589-020-0566-1/MediaObjects/41589_2020_566_Figa_HTML.png" width="750">
 </p>
  
-This work builds upon existing fluorescence-tracking algorithms from other packages such as u-track (see https://github.com/mcianfrocco/Matlab/), and streamlines the processing of various relevent observables.
+This work builds upon existing fluorescence-tracking algorithms from other packages such as [u-track](https://github.com/mcianfrocco/Matlab/), and streamlines the processing of various relevent observables.
  
 # Usage
 
