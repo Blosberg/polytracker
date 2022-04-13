@@ -1,4 +1,4 @@
-# polytracker
+# Polytracker
 
 This matlab package contains the necessary code for the analysis performed in [the associated publication](https://www.nature.com/articles/s41589-020-0566-1) to analyse the di- and oligo-merization of cell membrane µ-opioid receptors. 
 
